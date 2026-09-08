@@ -1389,7 +1389,6 @@
             </div>
             <div class="form-group">
               <label for="weight">体重 (kg)</label>
-              <!-- 体重なしでもお通じ等の記録ができるよう required を外しました -->
               <input type="number" id="weight" step="0.1" min="20" max="200" placeholder="50.0">
             </div>
             <div class="form-group">
@@ -2315,8 +2314,8 @@
       syncMealScoreUI(dateKey);
       const rec = records.find(r => r.date === dateKey);
       if (rec) {
-        document.getElementById('weight').value = rec.weight !== null && rec.weight !== undefined ? rec.weight : '';
-        document.getElementById('fat').value = rec.fat !== null && rec.fat !== undefined ? rec.fat : '';
+        document.getElementById('weight').value = (rec.weight !== null && rec.weight !== undefined) ? rec.weight : '';
+        document.getElementById('fat').value = (rec.fat !== null && rec.fat !== undefined) ? rec.fat : '';
         const bowelVal = rec.bowel || '未記録';
         const radio = document.querySelector(`input[name="bowel"][value="${bowelVal}"]`);
         if (radio) radio.checked = true;
@@ -3664,7 +3663,7 @@
             yWeight: {
               type: 'linear',
               display: false,
-              grid: { color: '#f0ebe1', display: true } // グラフ内の横グリッド線を表示
+              grid: { color: '#f0ebe1', display: true }
             },
             yFat: {
               type: 'linear',
@@ -3732,35 +3731,33 @@
       const validWeights = weights.filter(w => typeof w === 'number' && !isNaN(w));
       const validFats = fats.filter(f => typeof f === 'number' && !isNaN(f));
 
-      // 体重：0.5刻みスケール算出
-      let wMin = 45, wMax = 55;
+      // 体重：0.5刻み（上下適度な余白）
+      let wMin = 48, wMax = 52;
       if (validWeights.length > 0) {
         const minVal = Math.min(...validWeights);
         const maxVal = Math.max(...validWeights);
-        const margin = Math.max((maxVal - minVal) * 0.25, 0.8);
-        wMin = Math.floor((minVal - margin) * 2) / 2;
-        wMax = Math.ceil((maxVal + margin) * 2) / 2;
-        if (wMin === wMax) { wMin -= 1; wMax += 1; }
+        wMin = Math.floor((minVal - 0.5) * 2) / 2;
+        wMax = Math.ceil((maxVal + 0.5) * 2) / 2;
+        if (wMin === wMax) { wMin -= 0.5; wMax += 0.5; }
       }
       chartInstance.options.scales.yWeight.min = wMin;
       chartInstance.options.scales.yWeight.max = wMax;
 
-      // 体脂肪率：0.2刻みスケール算出
-      let fMin = 15, fMax = 30;
+      // 体脂肪率：0.2刻み（最小値のさらに -0.4 下からスタートし、体重と交差しないよう上下に余白を確保）
+      let fMin = 18, fMax = 28;
       if (validFats.length > 0) {
         const minVal = Math.min(...validFats);
         const maxVal = Math.max(...validFats);
-        const margin = Math.max((maxVal - minVal) * 0.25, 0.8);
-        fMin = Math.floor((minVal - margin) * 5) / 5;
-        fMax = Math.ceil((maxVal + margin) * 5) / 5;
-        if (fMin === fMax) { fMin -= 1; fMax += 1; }
+        fMin = Math.floor((minVal - 0.4) * 5) / 5; // 最小値の -0.4 からスタート
+        fMax = Math.ceil((maxVal + 0.6) * 5) / 5;  // 上部にも余裕を持たせる
+        if (fMin === fMax) { fMin -= 0.4; fMax += 0.4; }
       }
       chartInstance.options.scales.yFat.min = fMin;
       chartInstance.options.scales.yFat.max = fMax;
 
       chartInstance.update();
 
-      // 固定目盛りを描画（体重0.5刻み、体脂肪率0.2刻み）
+      // 固定目盛り＆背景グリッド線の連動描画
       renderFixedAxes(wMin, wMax, fMin, fMax, showWeight, showFat);
 
       const maxScrollLeft = container.scrollWidth - container.clientWidth;
@@ -3782,8 +3779,7 @@
       // 体重：0.5刻み
       let wDiff = wMax - wMin;
       let wSteps = Math.round(wDiff / 0.5);
-      if (wSteps < 2) wSteps = 4;
-      if (wSteps > 12) wSteps = 10;
+      if (wSteps < 1) wSteps = 1;
       for (let i = wSteps; i >= 0; i--) {
         const val = (wMin + wDiff * (i / wSteps)).toFixed(1);
         const span = document.createElement('span');
@@ -3794,8 +3790,7 @@
       // 体脂肪率：0.2刻み
       let fDiff = fMax - fMin;
       let fSteps = Math.round(fDiff / 0.2);
-      if (fSteps < 2) fSteps = 5;
-      if (fSteps > 15) fSteps = 10;
+      if (fSteps < 1) fSteps = 1;
       for (let i = fSteps; i >= 0; i--) {
         const val = (fMin + fDiff * (i / fSteps)).toFixed(1);
         const span = document.createElement('span');
