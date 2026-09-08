@@ -75,6 +75,8 @@
       border-radius: 50%;
       width: 36px;
       height: 36px;
+      min-width: 36px;
+      min-height: 36px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -82,6 +84,7 @@
       color: var(--text-main);
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
       transition: all 0.15s;
+      flex-shrink: 0;
     }
 
     .btn-settings-trigger svg {
@@ -1124,11 +1127,11 @@
     }
 
     .btn-chip {
-      padding: 5px 8px;
+      padding: 5px 10px;
       background: #fff;
       border: 1px solid var(--border);
       border-radius: 6px;
-      font-size: 0.75rem;
+      font-size: 0.78rem;
       cursor: pointer;
       color: var(--text-sub);
       transition: all 0.15s;
@@ -1717,12 +1720,10 @@
         <div class="chart-controls-wrapper">
           <div class="control-row">
             <span style="font-size: 0.82rem; font-weight: 600; color: var(--text-sub);">表示期間</span>
-            <div class="btn-group">
+            <div class="btn-group" id="periodButtonGroup">
               <button class="btn-chip btn-period active" data-period="7">週</button>
               <button class="btn-chip btn-period" data-period="30">月</button>
               <button class="btn-chip btn-period" data-period="90">3ヶ月</button>
-              <button class="btn-chip btn-period" data-period="180">6ヶ月</button>
-              <button class="btn-chip btn-period" data-period="365">1年</button>
             </div>
           </div>
           <div class="control-row">
@@ -2057,7 +2058,7 @@
       targetC: 220
     };
 
-    let currentSpanDays = 30; // 7, 30, 90, 180, 365
+    let currentSpanDays = 7; // デフォルト：週（7日）
     let currentMode = 'both';
     let chartInstance = null;
     let calendarDate = new Date();
@@ -2131,6 +2132,7 @@
       setupSearchListener();
       setupDropzones();
       setupSettings();
+      setupPeriodButtons();
 
       document.getElementById('newFoodUnitType').addEventListener('change', (e) => {
         const val = e.target.value;
@@ -2147,6 +2149,12 @@
       renderList();
       renderMealSlots();
       initChart();
+
+      // 横スクロール時に表示中の日付範囲をリアルタイム更新するリスナー
+      const scrollContainer = document.getElementById('chartScrollContainer');
+      scrollContainer.addEventListener('scroll', () => {
+        updateChartDateRangeDisplay();
+      });
     });
 
     function formatDate(d) {
@@ -2563,7 +2571,7 @@
       saveAndRefresh();
 
       resetFormState();
-      document.querySelector('.tab-btn[data-tab="tab-calendar"]').click();
+      document.querySelector('.tab-btn[data-tab="tab-form"]').click();
     });
 
     function startEdit(dateKey) {
@@ -3616,20 +3624,20 @@
     function updateChart() {
       if (!chartInstance) return;
 
-      // データが存在する場合は「最古の記録日」から今日まで、データがない場合は「選択した期間（例：30日）」の全日付を生成
-      let allDates = [];
+      // 過去最大1年分〜今日までの全カレンダー日付プールを構築
       const today = new Date();
       today.setHours(0,0,0,0);
 
       let startDate = new Date(today);
-      startDate.setDate(startDate.getDate() - currentSpanDays + 1);
+      startDate.setFullYear(startDate.getFullYear() - 1);
 
       if (records.length > 0) {
         const sortedRecs = [...records].sort((a,b) => new Date(a.date) - new Date(b.date));
         const firstRecDate = new Date(sortedRecs[0].date + 'T00:00:00');
-        if (startDate < firstRecDate) startDate = firstRecDate;
+        if (startDate > firstRecDate) startDate = firstRecDate;
       }
 
+      let allDates = [];
       let curr = new Date(startDate);
       while (curr <= today) {
         allDates.push(formatDate(curr));
@@ -3646,18 +3654,15 @@
         return (found && found.fat !== null) ? found.fat : null;
       });
 
-      // 1画面に「選択した日数分（currentSpanDays）」がちょうど収まるように横幅を動的に広げる
-      // （例: 週なら7日分の幅、月なら30日分の幅になり、横スクロールで過去の全データにアクセス可能）
+      // グラフ全体の横幅を日数に完全同期させる
+      // 各期間（週=7日, 月=30日, 3ヶ月=90日）が正確に指定日数分の幅を持つように設定
       const containerWidth = document.getElementById('chartScrollContainer').clientWidth || 500;
-      const minWidthPerDay = containerWidth / Math.min(currentSpanDays, allDates.length);
-      const calculatedWidth = Math.max(containerWidth, allDates.length * Math.max(minWidthPerDay, 25));
+      // 1日あたりのピクセル幅を、画面幅を「currentSpanDays」で割った値（最低でも1日あたり一定の幅を確保）
+      const pxPerDay = Math.max(containerWidth / currentSpanDays, 25);
+      const calculatedWidth = allDates.length * pxPerDay;
       
       document.getElementById('chartInnerWrapper').style.width = calculatedWidth + 'px';
       chartInstance.resize();
-
-      if (allDates.length > 0) {
-        document.getElementById('chartRangeDisplay').textContent = `${allDates[0].replace(/-/g,'/')} 〜 ${allDates[allDates.length-1].replace(/-/g,'/')}`;
-      }
 
       chartInstance.data.labels = labels;
 
@@ -3698,19 +3703,71 @@
 
       chartInstance.update();
 
-      // 初期表示時は一番右（今日）にスクロール位置を合わせる
+      // ボタン切替時に、正確に選択した日数（7日、30日、90日）が画面右端（今日）を起点にぴったり収まるようスクロール位置を調整
       const container = document.getElementById('chartScrollContainer');
-      container.scrollLeft = container.scrollWidth;
+      const maxScrollLeft = container.scrollWidth - container.clientWidth;
+      const targetScroll = maxScrollLeft; // 一番右（今日）に合わせる
+      container.scrollLeft = Math.max(0, targetScroll);
+
+      updateChartDateRangeDisplay();
     }
 
-    document.querySelectorAll('.btn-period').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        document.querySelectorAll('.btn-period').forEach(b => b.classList.remove('active'));
-        e.target.classList.add('active');
-        currentSpanDays = parseInt(e.target.dataset.period, 10);
-        updateChart();
+    function updateChartDateRangeDisplay() {
+      if (!chartInstance || chartInstance.data.labels.length === 0) return;
+      const container = document.getElementById('chartScrollContainer');
+      const scrollLeft = container.scrollLeft;
+      const totalWidth = container.scrollWidth;
+      const totalDays = chartInstance.data.labels.length;
+      if (totalWidth <= 0) return;
+
+      // スクロール位置から現在の左端・右端の日付インデックスを正確に逆算
+      const pxPerDay = totalWidth / totalDays;
+      const visibleDays = container.clientWidth / pxPerDay;
+
+      const startIndex = Math.round(scrollLeft / pxPerDay);
+      const endIndex = Math.min(totalDays - 1, Math.round(startIndex + visibleDays - 1));
+
+      const labels = chartInstance.data.labels;
+      const allDates = chartInstance.data.labels.map(l => {
+        // ラベルから日付文字列を復元するための全プール配列を再利用
+        return l;
       });
-    });
+
+      const currentYear = new Date().getFullYear();
+
+      // プールの開始日を逆算して正確な日付文字列を表示
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      let startDate = new Date(today);
+      startDate.setFullYear(startDate.getFullYear() - 1);
+      if (records.length > 0) {
+        const sortedRecs = [...records].sort((a,b) => new Date(a.date) - new Date(b.date));
+        const firstRecDate = new Date(sortedRecs[0].date + 'T00:00:00');
+        if (startDate > firstRecDate) startDate = firstRecDate;
+      }
+
+      let dStart = new Date(startDate);
+      dStart.setDate(dStart.getDate() + startIndex);
+      let dEnd = new Date(startDate);
+      dEnd.setDate(dEnd.getDate() + endIndex);
+
+      const startStr = `${dStart.getFullYear()}/${String(dStart.getMonth()+1).padStart(2,'0')}/${String(dStart.getDate()).padStart(2,'0')}`;
+      const endStr = `${dEnd.getFullYear()}/${String(dEnd.getMonth()+1).padStart(2,'0')}/${String(dEnd.getDate()).padStart(2,'0')}`;
+      document.getElementById('chartRangeDisplay').textContent = `${startStr} 〜 ${endStr}`;
+    }
+
+    function setupPeriodButtons() {
+      const buttons = document.querySelectorAll('.btn-period');
+      buttons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          buttons.forEach(b => b.classList.remove('active'));
+          const targetBtn = e.currentTarget;
+          targetBtn.classList.add('active');
+          currentSpanDays = parseInt(targetBtn.dataset.period, 10);
+          updateChart();
+        });
+      });
+    }
 
     document.querySelectorAll('.btn-chip-mode').forEach(btn => {
       btn.addEventListener('click', (e) => {
