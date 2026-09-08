@@ -1143,7 +1143,7 @@
       border-color: var(--accent);
     }
 
-    /* 固定目盛り＋スクロールステージ（背景グリッド線対応） */
+    /* 固定目盛り＋スクロールステージ（余白を極限まで削る） */
     .chart-stage-container {
       position: relative;
       display: flex;
@@ -1164,14 +1164,14 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding: 10px 4px 30px 4px;
-      font-size: 10px;
+      padding: 4px 1px 24px 1px; /* 左右の余白をほぼゼロに */
+      font-size: 9px; /* 文字サイズをさらに小さく */
       user-select: none;
       pointer-events: none;
     }
 
     .chart-axis-left {
-      width: 42px;
+      width: 26px; /* スリム化 */
       border-right: 1px solid #f0ebe1;
       text-align: right;
       color: #9c826b;
@@ -1179,7 +1179,7 @@
     }
 
     .chart-axis-right {
-      width: 38px;
+      width: 25px; /* スリム化 */
       border-left: 1px solid #f0ebe1;
       text-align: left;
       color: #c48b71;
@@ -3640,7 +3640,7 @@
           maintainAspectRatio: false,
           interaction: { mode: 'index', intersect: false },
           layout: {
-            padding: { top: 10, bottom: 0, left: 10, right: 10 }
+            padding: { top: 10, bottom: 0, left: 1, right: 1 }
           },
           plugins: {
             legend: {
@@ -3731,8 +3731,6 @@
       const visibleWeights = weights.slice(-currentSpanDays).filter(w => typeof w === 'number' && !isNaN(w));
       const visibleFats = fats.slice(-currentSpanDays).filter(f => typeof f === 'number' && !isNaN(f));
 
-      // 【要件の厳密な同期処理】
-      // 最近の平均体重から-5kgまで許容。ただし最小でもデータに基づく下限を考慮。
       let avgWeight = 46.0;
       if (visibleWeights.length > 0) {
         const sum = visibleWeights.reduce((a, b) => a + b, 0);
@@ -3744,34 +3742,29 @@
         }
       }
 
-      let wMin = Math.floor((avgWeight - 5.0) * 2) / 2;
+      let targetMinW = Math.min(avgWeight - 5.0, 42.0);
       if (visibleWeights.length > 0) {
         const minVal = Math.min(...visibleWeights);
-        wMin = Math.min(wMin, Math.floor((minVal - 0.5) * 2) / 2);
+        targetMinW = Math.min(targetMinW, minVal - 0.5);
       }
+      let wMin = Math.floor(targetMinW * 2) / 2;
 
-      // 上限は直近の最大値＋余裕、または最低でも48kgなどを網羅できるようにする
       let maxValW = visibleWeights.length > 0 ? Math.max(...visibleWeights) : avgWeight;
-      let wMax = Math.ceil((Math.max(maxValW, 48.0) + 1.0) * 2) / 2;
+      let wMax = Math.ceil((Math.max(maxValW, 48.0) + 0.5) * 2) / 2;
       if (wMin === wMax) wMax += 1.0;
 
-      // 体重軸と体脂肪率軸のレンジ幅・比率を完全に一致させ、上下の対応点を同期させる
-      // 例: 体重範囲(wMin ~ wMax) と 体脂肪率範囲(fMin ~ fMax) の「目盛り刻み数」を同じにする
       let wDiff = wMax - wMin;
       let steps = Math.round(wDiff / 0.5);
-      if (steps < 4) steps = 12; // デフォルト6kg幅(=12ステップ)など
+      if (steps < 4) steps = 12;
 
       wMax = wMin + (steps * 0.5);
 
-      // 体脂肪率側のレンジを体重側と全く同じステップ数(0.5刻み)で連動させる
-      // 基準の対応関係：たとえば中央付近や特定の値を同期させるか、あるいはスパンを一致させる
-      // ここではスパンを一致させつつ、体脂肪率の中央値が適切になるように配置
       let avgFat = 28.0;
       if (visibleFats.length > 0) {
         avgFat = visibleFats.reduce((a, b) => a + b, 0) / visibleFats.length;
       }
       
-      let fSpan = steps * 0.5; // 体重と同じ幅
+      let fSpan = steps * 0.5;
       let fMin = Math.floor((avgFat - (fSpan / 2)) * 2) / 2;
       let fMax = fMin + fSpan;
 
@@ -3800,7 +3793,6 @@
       leftAxis.style.visibility = showWeight ? 'visible' : 'hidden';
       rightAxis.style.visibility = showFat ? 'visible' : 'hidden';
 
-      // 体重：0.5刻み
       let wDiff = wMax - wMin;
       let wSteps = Math.round(wDiff / 0.5);
       if (wSteps < 1) wSteps = 1;
@@ -3811,7 +3803,6 @@
         leftAxis.appendChild(span);
       }
 
-      // 体脂肪率：0.5刻み
       let fDiff = fMax - fMin;
       let fSteps = Math.round(fDiff / 0.5);
       if (fSteps < 1) fSteps = 1;
