@@ -760,17 +760,70 @@
     }
 
     .food-search-item {
-      padding: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 10px;
       border: 1px solid var(--border);
       border-radius: 8px;
-      cursor: pointer;
       background: #fff;
       transition: all 0.15s;
     }
 
-    .food-search-item:hover, .food-search-item.selected {
+    .food-search-item:hover {
+      border-color: var(--accent);
+    }
+
+    .food-search-item.selected {
       background: var(--accent-light);
       border-color: var(--accent);
+    }
+
+    .food-search-item-clickable {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      cursor: pointer;
+    }
+
+    .food-thumb {
+      width: 36px;
+      height: 36px;
+      border-radius: 6px;
+      object-fit: cover;
+      border: 1px solid var(--border);
+      background: #fdfdfd;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+
+    .food-info {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      flex: 1;
+    }
+
+    .food-maker {
+      font-size: 0.68rem;
+      color: var(--text-sub);
+      font-weight: 500;
+    }
+
+    .food-name {
+      font-size: 0.86rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .food-nutri {
+      font-size: 0.74rem;
+      color: var(--text-sub);
     }
 
     .food-portion-calc {
@@ -1162,7 +1215,6 @@
       background: #fdf2f2;
     }
 
-    /* 設定用メニュー */
     .settings-menu-list {
       display: flex;
       flex-direction: column;
@@ -1226,7 +1278,7 @@
       <button type="button" class="btn-settings-trigger" id="btnOpenSettings" title="設定">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"/>
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
         </svg>
       </button>
     </header>
@@ -1679,33 +1731,59 @@
       <div class="modal-body">
         <!-- 1. 一般食材検索 -->
         <div id="modalViewSearch">
-          <input type="text" id="foodSearchInput" placeholder="食材名 (例: 白米、鶏むね、卵、納豆...)" style="margin-bottom: 8px;">
+          <input type="text" id="foodSearchInput" placeholder="食材名 (例: パルテノ、納豆、卵、白米...)" style="margin-bottom: 8px;">
           <ul class="food-search-list" id="foodSearchResults"></ul>
 
           <div class="food-portion-calc" id="portionCalcArea">
             <div style="font-size:0.85rem; font-weight:600; color:var(--text-main); margin-bottom:6px;" id="selectedFoodName">白米</div>
             <div style="display:flex; align-items:center; gap:8px;">
               <label style="font-size:0.8rem;">分量:</label>
-              <input type="number" id="portionGrams" value="100" min="10" max="500" step="5" style="width:90px; padding:6px 8px;">
-              <span style="font-size:0.8rem; color:var(--text-sub);">g (%)</span>
+              <input type="number" id="portionGrams" value="100" min="1" max="1000" step="1" style="width:90px; padding:6px 8px;">
+              <span style="font-size:0.8rem; color:var(--text-sub);" id="portionUnitLabel">g</span>
             </div>
             <div style="font-size:0.75rem; color:var(--text-sub); margin-top:6px;" id="calcResultPreview"></div>
             <button type="button" class="btn-primary" style="margin-top:10px; padding:8px;" onclick="addCalculatedFoodToSlot()">この食材を追加</button>
           </div>
 
           <details style="margin-top: 10px; border: 1px dashed var(--border); border-radius: 8px; padding: 10px; background: #faf8f5;" id="newCustomFoodDetails">
-            <summary style="font-size: 0.8rem; color: var(--accent); cursor: pointer; font-weight: 600;">+ 一般食材リストに新しく追加する</summary>
+            <summary style="font-size: 0.8rem; color: var(--accent); cursor: pointer; font-weight: 600;" id="customFoodFormSummary">+ 一般食材リストに新しく追加する</summary>
             <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">
-              <div style="font-size: 0.72rem; color: var(--text-sub);">※100gあたりの基準値を入力してください</div>
-              <input type="text" id="newFoodName" placeholder="食材名 (例: さつまいも、牛肉もも...)">
-              <input type="text" id="newFoodKana" placeholder="ひらがな検索用 (例: さつまいも)">
-              <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px;">
-                <input type="number" id="newFoodKcal" placeholder="カロリー / 100g">
-                <input type="number" id="newFoodP" step="0.1" placeholder="P (g) / 100g">
-                <input type="number" id="newFoodF" step="0.1" placeholder="F (g) / 100g">
-                <input type="number" id="newFoodC" step="0.1" placeholder="C (g) / 100g">
+              <div style="font-size: 0.72rem; color: var(--text-sub);">※100gまたは1個あたりの基準値を入力してください</div>
+              <input type="text" id="newFoodMaker" placeholder="メーカー名 / ブランド (例: 明治、タカノフーズ...)">
+              <input type="text" id="newFoodName" placeholder="商品名 (例: 特製ハンバーグ...)">
+              <input type="text" id="newFoodKana" placeholder="ひらがな検索用 (例: とくせいはいんばーぐ)">
+              
+              <!-- 単位の選択 -->
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <label style="font-size:0.8rem;">単位・計算方式:</label>
+                <select id="newFoodUnitType" style="padding: 4px 8px; font-size: 0.8rem;">
+                  <option value="gram">g単位 (100gあたりで入力)</option>
+                  <option value="piece">個・パック単位 (1個/1パックあたりで入力)</option>
+                </select>
               </div>
-              <button type="button" class="btn-primary" style="padding: 7px; font-size: 0.82rem;" onclick="saveCustomFood()">食材リストに登録</button>
+              <input type="text" id="newFoodCustomUnitName" placeholder="単位名 (例: 個、パック、枚 ※個・パック単位選択時)" style="display:none;">
+
+              <!-- 画像登録用ドロップゾーン -->
+              <div class="dropzone-area" id="customFoodDropzone">
+                <div style="font-size:0.78rem; color:var(--text-sub);">
+                  食材画像をドラッグ＆ドロップ、またはクリックして選択<br>
+                  <span style="font-size:0.7rem; color:#a09384;">(WEB画像をコピーしてここで Ctrl+V もOK)</span>
+                </div>
+                <input type="file" id="customFoodFileInput" accept="image/*" style="display:none;">
+                <img id="customFoodPreviewImg" class="dropzone-preview" alt="プレビュー">
+                <button type="button" id="btnClearCustomImage" style="display:none; margin: 4px auto 0; font-size: 0.7rem; background: none; border: none; color: var(--danger); cursor: pointer;">画像を削除</button>
+              </div>
+
+              <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px;">
+                <input type="number" id="newFoodKcal" placeholder="カロリー">
+                <input type="number" id="newFoodP" step="0.1" placeholder="P (g)">
+                <input type="number" id="newFoodF" step="0.1" placeholder="F (g)">
+                <input type="number" id="newFoodC" step="0.1" placeholder="C (g)">
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <button type="button" class="btn-primary" style="padding: 7px; font-size: 0.82rem;" id="btnSaveCustomFood" onclick="saveOrUpdateCustomFood()">食材リストに登録</button>
+                <button type="button" class="btn-cancel" style="padding: 7px 12px; font-size: 0.82rem;" id="btnCancelCustomFoodEdit" onclick="cancelCustomFoodEdit()">キャンセル</button>
+              </div>
             </div>
           </details>
         </div>
@@ -1718,7 +1796,7 @@
           <details style="margin-top: 10px; border: 1px dashed var(--border); border-radius: 8px; padding: 10px; background: #faf8f5;" id="newPresetDetails">
             <summary style="font-size: 0.8rem; color: var(--accent); cursor: pointer; font-weight: 600;" id="presetFormSummary">+ 新しいマイ定番を登録する</summary>
             <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">
-              <input type="text" id="newPresetName" placeholder="商品名・メニュー名 (例: サラダチキン プレーン)">
+              <input type="text" id="newPresetName" placeholder="商品名・メニュー名">
               
               <div class="dropzone-area" id="presetDropzone">
                 <div style="font-size:0.78rem; color:var(--text-sub);">
@@ -1747,7 +1825,7 @@
     </div>
   </div>
 
-  <!-- ユーザー設定モーダル（SVGアイコン＆ドラッグ並び替え対応） -->
+  <!-- ユーザー設定モーダル -->
   <div class="modal-overlay" id="settingsModal">
     <div class="modal-container" style="max-width: 420px;">
       <div class="modal-header">
@@ -1850,15 +1928,14 @@
           </form>
         </div>
 
-        <!-- マイ定番の管理＆並び替えビュー -->
+        <!-- マイ定番管理ビュー -->
         <div id="settingsViewPresets" style="display: none;">
           <button type="button" class="settings-back-btn" onclick="switchSettingsView('main')">＜ 設定トップに戻る</button>
           
-          <!-- 設定画面内での新規追加フォーム -->
           <details style="margin-bottom: 14px; border: 1px dashed var(--border); border-radius: 8px; padding: 10px; background: #faf8f5;">
             <summary style="font-size: 0.8rem; color: var(--accent); cursor: pointer; font-weight: 600;">+ 新しいマイ定番を追加する</summary>
             <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">
-              <input type="text" id="settingsNewPresetName" placeholder="メニュー名 (例: プロテインバー)">
+              <input type="text" id="settingsNewPresetName" placeholder="メニュー名">
               <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px;">
                 <input type="number" id="settingsNewPresetKcal" placeholder="カロリー (kcal)">
                 <input type="number" id="settingsNewPresetP" step="0.1" placeholder="P (g)">
@@ -1883,7 +1960,8 @@
     const STORAGE_KEY = 'simple_diet_records';
     const MEAL_STORAGE_KEY = 'simple_diet_meals';
     const PRESET_STORAGE_KEY = 'simple_diet_presets_unified';
-    const CUSTOM_FOODS_KEY = 'simple_diet_custom_foods_v1';
+    const CUSTOM_FOODS_KEY = 'simple_diet_custom_foods_v6';
+    const OVERRIDDEN_DEFAULTS_KEY = 'simple_diet_overridden_defaults_v1';
     const MEAL_SCORES_KEY = 'simple_diet_meal_scores_v1';
     const USER_CONFIG_KEY = 'simple_diet_user_config';
 
@@ -1891,7 +1969,6 @@
     let meals = JSON.parse(localStorage.getItem(MEAL_STORAGE_KEY)) || [];
     let mealScores = JSON.parse(localStorage.getItem(MEAL_SCORES_KEY)) || {};
 
-    /* 初回サンプルを完全に廃止し、ユーザー保存データのみを正とする読み込み処理 */
     function loadUserPresets() {
       let loaded = localStorage.getItem(PRESET_STORAGE_KEY);
       if (loaded) {
@@ -1900,69 +1977,44 @@
           if (Array.isArray(parsed)) return parsed;
         } catch(e) {}
       }
-
-      // 過去バージョンからの初回移行時のみ最低限のセット
-      let oldKeys = ['simple_diet_presets_v3', 'simple_diet_presets_v2', 'simple_diet_presets'];
-      let merged = [];
-      oldKeys.forEach(k => {
-        let raw = localStorage.getItem(k);
-        if (raw) {
-          try {
-            let parsed = JSON.parse(raw);
-            if (Array.isArray(parsed)) {
-              parsed.forEach(item => {
-                if (item && item.name && !merged.some(m => m.name === item.name)) {
-                  merged.push({
-                    id: item.id || Date.now() + Math.random(),
-                    name: item.name,
-                    kcal: item.kcal || 0,
-                    p: item.p || 0,
-                    f: item.f || 0,
-                    c: item.c || 0,
-                    image: item.image || ''
-                  });
-                }
-              });
-            }
-          } catch(e) {}
-        }
-      });
-
-      if (merged.length === 0) {
-        merged = [
-          { id: 1, name: 'サラダチキン 1袋', kcal: 115, p: 24.0, f: 1.5, c: 0.5, image: '' },
-          { id: 2, name: 'プロテイン 1杯', kcal: 120, p: 20.0, f: 1.8, c: 3.5, image: '' }
-        ];
-      }
-
-      localStorage.setItem(PRESET_STORAGE_KEY, JSON.stringify(merged));
-      return merged;
+      return [];
     }
 
     let presets = loadUserPresets();
 
-    const DEFAULT_COMMON_FOODS = [
-      { name: '白米 (ご飯)', kana: 'はくまい ごはん', kcal: 156, p: 2.5, f: 0.3, c: 35.6 },
-      { name: '玄米 (ご飯)', kana: 'げんまい', kcal: 152, p: 2.8, f: 1.0, c: 34.2 },
-      { name: '食パン', kana: 'しょくぱん', kcal: 248, p: 8.9, f: 4.1, c: 44.4 },
-      { name: 'オートミール', kana: 'おーとみーる', kcal: 350, p: 13.7, f: 5.7, c: 69.1 },
-      { name: 'うどん (ゆで)', kana: 'うどん', kcal: 95, p: 2.6, f: 0.4, c: 20.8 },
-      { name: 'パスタ (ゆで)', kana: 'ぱすた すぱげってぃ', kcal: 150, p: 5.2, f: 0.9, c: 28.4 },
-      { name: '鶏むね肉 (皮なし)', kana: 'とりむねにく', kcal: 105, p: 23.3, f: 1.5, c: 0.0 },
-      { name: '鶏もも肉 (皮なし)', kana: 'とりももにく', kcal: 116, p: 18.8, f: 3.9, c: 0.0 },
-      { name: 'ゆで卵 (約50g/個)', kana: 'ゆでたまご たまご', kcal: 134, p: 12.5, f: 9.6, c: 0.3 },
-      { name: '納豆 (約45g/パック)', kana: 'なっとう', kcal: 180, p: 16.5, f: 10.0, c: 12.1 },
-      { name: '木綿豆腐', kana: 'もめんどうふ とうふ', kcal: 73, p: 7.0, f: 4.9, c: 1.5 },
-      { name: '鮭 (焼き)', kana: 'さけ しゃけ', kcal: 190, p: 28.0, f: 7.0, c: 0.1 },
-      { name: 'ブロッコリー', kana: 'ぶろっこりー', kcal: 37, p: 3.9, f: 0.4, c: 4.3 },
-      { name: 'バナナ (1本約100g)', kana: 'ばなな', kcal: 93, p: 1.1, f: 0.2, c: 22.5 },
-      { name: '牛乳', kana: 'ぎゅうにゅう', kcal: 61, p: 3.3, f: 3.8, c: 4.8 }
+    // デフォルト一般食材リスト
+    const BASE_DEFAULT_FOODS = [
+      { id: 'def_1', name: '白米 (ご飯)', maker: '', kana: 'はくまい ごはん', kcal: 156, p: 2.5, f: 0.3, c: 35.6, unit: 'g', defaultAmount: 100, isTotalValue: false, image: '', isDefault: true },
+      { id: 'def_2', name: '玄米 (ご飯)', maker: '', kana: 'げんまい', kcal: 152, p: 2.8, f: 1.0, c: 34.2, unit: 'g', defaultAmount: 100, isTotalValue: false, image: '', isDefault: true },
+      { id: 'def_3', name: '食パン', maker: '', kana: 'しょくぱん', kcal: 248, p: 8.9, f: 4.1, c: 44.4, unit: 'g', defaultAmount: 60, isTotalValue: false, image: '', isDefault: true },
+      { id: 'def_4', name: 'オートミール', maker: '', kana: 'おーとみーる', kcal: 350, p: 13.7, f: 5.7, c: 69.1, unit: 'g', defaultAmount: 30, isTotalValue: false, image: '', isDefault: true },
+      { id: 'def_5', name: 'うどん (ゆで)', maker: '', kana: 'うどん', kcal: 95, p: 2.6, f: 0.4, c: 20.8, unit: 'g', defaultAmount: 200, isTotalValue: false, image: '', isDefault: true },
+      { id: 'def_6', name: 'パスタ (ゆで)', maker: '', kana: 'ぱすた すぱげってぃ', kcal: 150, p: 5.2, f: 0.9, c: 28.4, unit: 'g', defaultAmount: 150, isTotalValue: false, image: '', isDefault: true },
+      { id: 'def_7', name: '鶏むね肉 (皮なし)', maker: '', kana: 'とりむねにく', kcal: 105, p: 23.3, f: 1.5, c: 0.0, unit: 'g', defaultAmount: 100, isTotalValue: false, image: '', isDefault: true },
+      { id: 'def_8', name: '鶏もも肉 (皮なし)', maker: '', kana: 'とりももにく', kcal: 116, p: 18.8, f: 3.9, c: 0.0, unit: 'g', defaultAmount: 100, isTotalValue: false, image: '', isDefault: true },
+      { id: 'def_9', name: '木綿豆腐', maker: '', kana: 'もめんどうふ とうふ', kcal: 73, p: 7.0, f: 4.9, c: 1.5, unit: 'g', defaultAmount: 100, isTotalValue: false, image: '', isDefault: true },
+      { id: 'def_10', name: '鮭 (焼き)', maker: '', kana: 'さけ しゃけ', kcal: 190, p: 28.0, f: 7.0, c: 0.1, unit: 'g', defaultAmount: 80, isTotalValue: false, image: '', isDefault: true },
+      { id: 'def_11', name: 'ブロッコリー', maker: '', kana: 'ぶろっこりー', kcal: 37, p: 3.9, f: 0.4, c: 4.3, unit: 'g', defaultAmount: 70, isTotalValue: false, image: '', isDefault: true },
+      { id: 'def_12', name: 'バナナ', maker: '', kana: 'ばなな', kcal: 93, p: 1.1, f: 0.2, c: 22.5, unit: 'g', defaultAmount: 100, isTotalValue: false, image: '', isDefault: true },
+      { id: 'def_13', name: '牛乳', maker: '', kana: 'ぎゅうにゅう', kcal: 61, p: 3.3, f: 3.8, c: 4.8, unit: 'ml', defaultAmount: 200, isTotalValue: false, image: '', isDefault: true },
+      { id: 'def_14', name: '旨味ひきわりミニ1パック', maker: 'タカノフーズ', kana: 'うまみひきわりみにとっぷ', kcal: 97, p: 8.4, f: 5.0, c: 6.3, unit: 'パック', defaultAmount: 1, isTotalValue: true, image: '', isDefault: true },
+      { id: 'def_15', name: 'ギリシャヨーグルト パルテノ クリーミーバニラ', maker: '森永乳業', kana: 'ぎりしゃよーぐると ぱるての くりーみーばにら', kcal: 114, p: 10.0, f: 4.2, c: 9.1, unit: '個', defaultAmount: 1, isTotalValue: true, image: '', isDefault: true },
+      { id: 'def_16', name: 'MILK PROTEIN ヨーグルト 脂肪0 ピーチ', maker: 'ザバス', kana: 'ざばす みるくぷろていん よーぐると しぼうぜろ ぴーち', kcal: 90, p: 15.0, f: 0.0, c: 7.7, unit: '個', defaultAmount: 1, isTotalValue: true, image: '', isDefault: true },
+      { id: 'def_17', name: 'MILK PROTEIN ヨーグルト 脂肪0 マンゴー', maker: 'ザバス', kana: 'ざばす みるくぷろていん よーぐると しぼうぜろ まんごー', kcal: 90, p: 15.0, f: 0.0, c: 7.7, unit: '個', defaultAmount: 1, isTotalValue: true, image: '', isDefault: true },
+      { id: 'def_18', name: '生卵', maker: '', kana: 'なまたまご たまご', kcal: 76, p: 6.2, f: 5.2, c: 0.2, unit: '個', defaultAmount: 1, isTotalValue: true, image: '', isDefault: true }
     ];
 
+    let overriddenDefaults = JSON.parse(localStorage.getItem(OVERRIDDEN_DEFAULTS_KEY)) || {};
     let customFoods = JSON.parse(localStorage.getItem(CUSTOM_FOODS_KEY)) || [];
 
     function getAllCommonFoods() {
-      return [...DEFAULT_COMMON_FOODS, ...customFoods];
+      const mergedDefaults = BASE_DEFAULT_FOODS.map(item => {
+        if (overriddenDefaults[item.id]) {
+          return { ...item, ...overriddenDefaults[item.id] };
+        }
+        return item;
+      });
+      return [...mergedDefaults, ...customFoods];
     }
 
     let userConfig = JSON.parse(localStorage.getItem(USER_CONFIG_KEY)) || {
@@ -1984,8 +2036,13 @@
 
     let activeModalSlot = '朝食';
     let selectedFoodItem = null;
+
     let uploadedPresetImageBase64 = '';
     let editingPresetId = null;
+
+    let uploadedCustomImageBase64 = '';
+    let editingFoodId = null;
+    let editingIsDefault = false;
 
     const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
 
@@ -2041,8 +2098,18 @@
       setupAccordion();
       setupPagination();
       setupSearchListener();
-      setupDropzone();
+      setupDropzones();
       setupSettings();
+
+      document.getElementById('newFoodUnitType').addEventListener('change', (e) => {
+        const val = e.target.value;
+        const customUnitInput = document.getElementById('newFoodCustomUnitName');
+        if (val === 'piece') {
+          customUnitInput.style.display = 'block';
+        } else {
+          customUnitInput.style.display = 'none';
+        }
+      });
 
       applyUserConfigToUI();
       renderCalendar();
@@ -2218,7 +2285,6 @@
       });
     }
 
-    /* --- 設定＆目標モーダル制御 --- */
     function setupSettings() {
       document.getElementById('btnOpenSettings').addEventListener('click', () => {
         document.getElementById('settingUserName').value = userConfig.name || '';
@@ -2318,7 +2384,6 @@
       applyUserConfigToUI();
     }
 
-    /* 設定画面でのマイ定番管理＆ドラッグ並び替え */
     function renderSettingsPresets() {
       const container = document.getElementById('settingsPresetListContainer');
       container.innerHTML = '';
@@ -2420,6 +2485,7 @@
         mealScores,
         presets: JSON.parse(localStorage.getItem(PRESET_STORAGE_KEY) || '[]'),
         customFoods,
+        overriddenDefaults,
         userConfig
       };
       const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
@@ -2444,7 +2510,6 @@
       }
     }
 
-    /* 体重フォーム送信 */
     document.getElementById('recordForm').addEventListener('submit', (e) => {
       e.preventDefault();
 
@@ -2518,7 +2583,6 @@
       updateChart();
     }
 
-    /* 食事スロット & 積み上げプログレスバー計算 */
     function renderMealSlots() {
       const date = document.getElementById('mealCurrentDate').value;
       const slots = ['朝食', '昼食', '夕食', '間食'];
@@ -2640,7 +2704,6 @@
       renderMealSlots();
     }
 
-    /* モーダル制御 */
     function openMealModal(slotName) {
       activeModalSlot = slotName;
       document.getElementById('modalSlotTitle').textContent = `${slotName}の記録`;
@@ -2651,11 +2714,13 @@
       renderSearchResults('');
       document.getElementById('portionCalcArea').style.display = 'none';
       selectedFoodItem = null;
+      cancelCustomFoodEdit();
     }
 
     function closeMealModal() {
       document.getElementById('mealModal').classList.remove('open');
       cancelPresetEdit();
+      cancelCustomFoodEdit();
     }
 
     function switchModalTab(tab) {
@@ -2701,7 +2766,7 @@
       let results = allFoods;
       if (keyword) {
         const lower = keyword.toLowerCase();
-        results = allFoods.filter(f => f.name.includes(keyword) || (f.kana && f.kana.includes(lower)));
+        results = allFoods.filter(f => f.name.includes(keyword) || (f.maker && f.maker.toLowerCase().includes(lower)) || (f.kana && f.kana.includes(lower)));
       }
 
       if (results.length === 0) {
@@ -2712,36 +2777,72 @@
       results.forEach(food => {
         const li = document.createElement('li');
         li.className = 'food-search-item';
+        
+        const makerHtml = food.maker ? `<span class="food-maker">${escapeHtml(food.maker)}</span>` : '';
+        const thumbHtml = food.image 
+          ? `<img src="${food.image}" class="food-thumb" alt="">`
+          : `<div class="food-thumb">🍽️</div>`;
+
+        const baseUnitLabel = food.isTotalValue ? `1${food.unit || '個'}` : '100g';
+
         li.innerHTML = `
-          <div style="font-size:0.88rem; font-weight:500; color:var(--text-main);">${escapeHtml(food.name)}</div>
-          <div style="font-size:0.74rem; color:var(--text-sub);">
-            100g: ${food.kcal} kcal | P: ${food.p}g F: ${food.f}g C: ${food.c}g
+          <div class="food-search-item-clickable" onclick="selectFoodFromListItem('${food.id}', this)">
+            ${thumbHtml}
+            <div class="food-info">
+              ${makerHtml}
+              <span class="food-name">${escapeHtml(food.name)}</span>
+              <span class="food-nutri">${baseUnitLabel}: ${food.kcal} kcal | P: ${food.p}g F: ${food.f}g C: ${food.c}g</span>
+            </div>
+          </div>
+          <div style="display:flex; gap:4px; flex-shrink:0;">
+            <button type="button" class="btn-action btn-edit" onclick="startEditCustomFood('${food.id}')">編集</button>
+            ${!food.isDefault ? `<button type="button" class="btn-action btn-delete" onclick="deleteCustomFood('${food.id}')">削除</button>` : ''}
           </div>
         `;
-        li.addEventListener('click', () => {
-          document.querySelectorAll('.food-search-item').forEach(el => el.classList.remove('selected'));
-          li.classList.add('selected');
-          selectFoodForPortion(food);
-        });
         list.appendChild(li);
       });
     }
 
-    function selectFoodForPortion(food) {
-      selectedFoodItem = food;
-      document.getElementById('selectedFoodName').textContent = food.name;
-      document.getElementById('portionCalcArea').style.display = 'block';
-      document.getElementById('portionGrams').value = 100;
-      updatePortionPreview(100);
+    function selectFoodFromListItem(foodId, clickableEl) {
+      const allFoods = getAllCommonFoods();
+      const food = allFoods.find(f => f.id === foodId);
+      if (!food) return;
+
+      document.querySelectorAll('.food-search-item').forEach(el => el.classList.remove('selected'));
+      clickableEl.closest('.food-search-item').classList.add('selected');
+      selectFoodForPortion(food);
     }
 
-    function updatePortionPreview(grams) {
+    function selectFoodForPortion(food) {
+      selectedFoodItem = food;
+      document.getElementById('selectedFoodName').textContent = (food.maker ? `${food.maker} ` : '') + food.name;
+      document.getElementById('portionCalcArea').style.display = 'block';
+      
+      const unit = food.unit || 'g';
+      const defaultAmt = food.defaultAmount || (unit === 'g' ? 100 : 1);
+      
+      document.getElementById('portionGrams').value = defaultAmt;
+      document.getElementById('portionUnitLabel').textContent = unit;
+      updatePortionPreview(defaultAmt);
+    }
+
+    function updatePortionPreview(amount) {
       if (!selectedFoodItem) return;
-      const ratio = grams / 100;
-      const kcal = Math.round(selectedFoodItem.kcal * ratio);
-      const p = (selectedFoodItem.p * ratio).toFixed(1);
-      const f = (selectedFoodItem.f * ratio).toFixed(1);
-      const c = (selectedFoodItem.c * ratio).toFixed(1);
+      
+      let kcal, p, f, c;
+      if (selectedFoodItem.isTotalValue) {
+        const ratio = amount; 
+        kcal = Math.round(selectedFoodItem.kcal * ratio);
+        p = (selectedFoodItem.p * ratio).toFixed(1);
+        f = (selectedFoodItem.f * ratio).toFixed(1);
+        c = (selectedFoodItem.c * ratio).toFixed(1);
+      } else {
+        const ratio = amount / 100;
+        kcal = Math.round(selectedFoodItem.kcal * ratio);
+        p = (selectedFoodItem.p * ratio).toFixed(1);
+        f = (selectedFoodItem.f * ratio).toFixed(1);
+        c = (selectedFoodItem.c * ratio).toFixed(1);
+      }
 
       document.getElementById('calcResultPreview').textContent = 
         `${kcal} kcal / P: ${p}g  F: ${f}g  C: ${c}g`;
@@ -2749,20 +2850,35 @@
 
     function addCalculatedFoodToSlot() {
       if (!selectedFoodItem) return;
-      const grams = parseFloat(document.getElementById('portionGrams').value) || 100;
-      const ratio = grams / 100;
+      const amount = parseFloat(document.getElementById('portionGrams').value) || 100;
+      const unit = selectedFoodItem.unit || 'g';
+
+      let kcal, p, f, c;
+      if (selectedFoodItem.isTotalValue) {
+        kcal = Math.round(selectedFoodItem.kcal * amount);
+        p = parseFloat((selectedFoodItem.p * amount).toFixed(1));
+        f = parseFloat((selectedFoodItem.f * amount).toFixed(1));
+        c = parseFloat((selectedFoodItem.c * amount).toFixed(1));
+      } else {
+        const ratio = amount / 100;
+        kcal = Math.round(selectedFoodItem.kcal * ratio);
+        p = parseFloat((selectedFoodItem.p * ratio).toFixed(1));
+        f = parseFloat((selectedFoodItem.f * ratio).toFixed(1));
+        c = parseFloat((selectedFoodItem.c * ratio).toFixed(1));
+      }
 
       const date = document.getElementById('mealCurrentDate').value;
+      const displayName = (selectedFoodItem.maker ? `${selectedFoodItem.maker} ` : '') + selectedFoodItem.name;
       const newMeal = {
         id: Date.now(),
         date,
         type: activeModalSlot,
-        content: `${selectedFoodItem.name} ${grams}g`,
-        kcal: Math.round(selectedFoodItem.kcal * ratio),
-        p: parseFloat((selectedFoodItem.p * ratio).toFixed(1)),
-        f: parseFloat((selectedFoodItem.f * ratio).toFixed(1)),
-        c: parseFloat((selectedFoodItem.c * ratio).toFixed(1)),
-        image: ''
+        content: `${displayName} ${amount}${unit}`,
+        kcal,
+        p,
+        f,
+        c,
+        image: selectedFoodItem.image || ''
       };
 
       meals.push(newMeal);
@@ -2771,8 +2887,70 @@
       closeMealModal();
     }
 
-    function saveCustomFood() {
+    function startEditCustomFood(foodId) {
+      const allFoods = getAllCommonFoods();
+      const food = allFoods.find(f => f.id === foodId);
+      if (!food) return;
+
+      editingFoodId = foodId;
+      editingIsDefault = !!food.isDefault;
+
+      document.getElementById('newFoodMaker').value = food.maker || '';
+      document.getElementById('newFoodName').value = food.name || '';
+      document.getElementById('newFoodKana').value = food.kana || '';
+      document.getElementById('newFoodKcal').value = food.kcal !== undefined ? food.kcal : '';
+      document.getElementById('newFoodP').value = food.p !== undefined ? food.p : '';
+      document.getElementById('newFoodF').value = food.f !== undefined ? food.f : '';
+      document.getElementById('newFoodC').value = food.c !== undefined ? food.c : '';
+
+      const unitTypeSelect = document.getElementById('newFoodUnitType');
+      const customUnitInput = document.getElementById('newFoodCustomUnitName');
+      if (food.isTotalValue) {
+        unitTypeSelect.value = 'piece';
+        customUnitInput.style.display = 'block';
+        customUnitInput.value = food.unit || '個';
+      } else {
+        unitTypeSelect.value = 'gram';
+        customUnitInput.style.display = 'none';
+        customUnitInput.value = '';
+      }
+
+      if (food.image) {
+        uploadedCustomImageBase64 = food.image;
+        showCustomDropzonePreview(food.image);
+      } else {
+        clearCustomDropzoneImage();
+      }
+
+      document.getElementById('customFoodFormSummary').textContent = '一般食材を編集中';
+      document.getElementById('btnSaveCustomFood').textContent = '更新する';
+      document.getElementById('btnCancelCustomFoodEdit').style.display = 'block';
+      document.getElementById('newCustomFoodDetails').open = true;
+    }
+
+    function cancelCustomFoodEdit() {
+      editingFoodId = null;
+      editingIsDefault = false;
+      document.getElementById('newFoodMaker').value = '';
+      document.getElementById('newFoodName').value = '';
+      document.getElementById('newFoodKana').value = '';
+      document.getElementById('newFoodKcal').value = '';
+      document.getElementById('newFoodP').value = '';
+      document.getElementById('newFoodF').value = '';
+      document.getElementById('newFoodC').value = '';
+      document.getElementById('newFoodUnitType').value = 'gram';
+      document.getElementById('newFoodCustomUnitName').style.display = 'none';
+      document.getElementById('newFoodCustomUnitName').value = '';
+      clearCustomDropzoneImage();
+
+      document.getElementById('customFoodFormSummary').textContent = '+ 一般食材リストに新しく追加する';
+      document.getElementById('btnSaveCustomFood').textContent = '食材リストに登録';
+      document.getElementById('btnCancelCustomFoodEdit').style.display = 'none';
+    }
+
+    function saveOrUpdateCustomFood() {
       const name = document.getElementById('newFoodName').value.trim();
+      const maker = document.getElementById('newFoodMaker').value.trim();
       const kana = document.getElementById('newFoodKana').value.trim().toLowerCase();
       if (!name) {
         alert('食材名を入力してください');
@@ -2783,21 +2961,81 @@
       const f = parseFloat(document.getElementById('newFoodF').value) || 0;
       const c = parseFloat(document.getElementById('newFoodC').value) || 0;
 
-      customFoods.push({ name, kana, kcal, p, f, c });
-      localStorage.setItem(CUSTOM_FOODS_KEY, JSON.stringify(customFoods));
+      const unitType = document.getElementById('newFoodUnitType').value;
+      const isTotalValue = (unitType === 'piece');
+      const unit = isTotalValue ? (document.getElementById('newFoodCustomUnitName').value.trim() || '個') : 'g';
+      const defaultAmount = isTotalValue ? 1 : 100;
 
-      document.getElementById('newFoodName').value = '';
-      document.getElementById('newFoodKana').value = '';
-      document.getElementById('newFoodKcal').value = '';
-      document.getElementById('newFoodP').value = '';
-      document.getElementById('newFoodF').value = '';
-      document.getElementById('newFoodC').value = '';
-      document.getElementById('newCustomFoodDetails').open = false;
+      if (editingFoodId) {
+        if (editingIsDefault) {
+          overriddenDefaults[editingFoodId] = {
+            name,
+            maker,
+            kana,
+            kcal,
+            p,
+            f,
+            c,
+            unit,
+            defaultAmount,
+            isTotalValue,
+            image: uploadedCustomImageBase64,
+            isDefault: true
+          };
+          localStorage.setItem(OVERRIDDEN_DEFAULTS_KEY, JSON.stringify(overriddenDefaults));
+        } else {
+          const target = customFoods.find(f => f.id === editingFoodId);
+          if (target) {
+            target.name = name;
+            target.maker = maker;
+            target.kana = kana;
+            target.kcal = kcal;
+            target.p = p;
+            target.f = f;
+            target.c = c;
+            target.unit = unit;
+            target.defaultAmount = defaultAmount;
+            target.isTotalValue = isTotalValue;
+            target.image = uploadedCustomImageBase64;
+          }
+          localStorage.setItem(CUSTOM_FOODS_KEY, JSON.stringify(customFoods));
+        }
+      } else {
+        customFoods.push({
+          id: 'custom_' + Date.now(),
+          name,
+          maker,
+          kana,
+          kcal,
+          p,
+          f,
+          c,
+          unit,
+          defaultAmount,
+          isTotalValue,
+          image: uploadedCustomImageBase64 || '',
+          isDefault: false
+        });
+        localStorage.setItem(CUSTOM_FOODS_KEY, JSON.stringify(customFoods));
+      }
 
+      cancelCustomFoodEdit();
       renderSearchResults(document.getElementById('foodSearchInput').value.trim());
     }
 
-    function setupDropzone() {
+    function deleteCustomFood(foodId) {
+      const allFoods = getAllCommonFoods();
+      const food = allFoods.find(f => f.id === foodId);
+      if (!food) return;
+      if (!confirm(`一般食材「${food.name}」を削除しますか？`)) return;
+
+      customFoods = customFoods.filter(f => f.id !== foodId);
+      localStorage.setItem(CUSTOM_FOODS_KEY, JSON.stringify(customFoods));
+      if (editingFoodId === foodId) cancelCustomFoodEdit();
+      renderSearchResults(document.getElementById('foodSearchInput').value.trim());
+    }
+
+    function setupDropzones() {
       const dropzone = document.getElementById('presetDropzone');
       const fileInput = document.getElementById('presetFileInput');
       const clearBtn = document.getElementById('btnClearImage');
@@ -2808,25 +3046,64 @@
 
       fileInput.addEventListener('change', (e) => {
         if (e.target.files && e.target.files[0]) {
-          processImageFile(e.target.files[0]);
+          processImageFile(e.target.files[0], (base64) => {
+            uploadedPresetImageBase64 = base64;
+            showPresetDropzonePreview(base64);
+          });
         }
       });
 
-      dropzone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropzone.classList.add('dragover');
-      });
-
-      dropzone.addEventListener('dragleave', () => {
-        dropzone.classList.remove('dragover');
-      });
-
+      dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+      dropzone.addEventListener('dragleave', () => { dropzone.classList.remove('dragover'); });
       dropzone.addEventListener('drop', (e) => {
         e.preventDefault();
         dropzone.classList.remove('dragover');
         if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-          processImageFile(e.dataTransfer.files[0]);
+          processImageFile(e.dataTransfer.files[0], (base64) => {
+            uploadedPresetImageBase64 = base64;
+            showPresetDropzonePreview(base64);
+          });
         }
+      });
+
+      clearBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        clearPresetDropzoneImage();
+      });
+
+      const customDropzone = document.getElementById('customFoodDropzone');
+      const customFileInput = document.getElementById('customFoodFileInput');
+      const customClearBtn = document.getElementById('btnClearCustomImage');
+
+      customDropzone.addEventListener('click', (e) => {
+        if (e.target !== customClearBtn) customFileInput.click();
+      });
+
+      customFileInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+          processImageFile(e.target.files[0], (base64) => {
+            uploadedCustomImageBase64 = base64;
+            showCustomDropzonePreview(base64);
+          });
+        }
+      });
+
+      customDropzone.addEventListener('dragover', (e) => { e.preventDefault(); customDropzone.classList.add('dragover'); });
+      customDropzone.addEventListener('dragleave', () => { customDropzone.classList.remove('dragover'); });
+      customDropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        customDropzone.classList.remove('dragover');
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+          processImageFile(e.dataTransfer.files[0], (base64) => {
+            uploadedCustomImageBase64 = base64;
+            showCustomDropzonePreview(base64);
+          });
+        }
+      });
+
+      customClearBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        clearCustomDropzoneImage();
       });
 
       window.addEventListener('paste', (e) => {
@@ -2835,19 +3112,22 @@
         for (let item of items) {
           if (item.type.indexOf('image') !== -1) {
             const blob = item.getAsFile();
-            processImageFile(blob);
+            processImageFile(blob, (base64) => {
+              if (document.getElementById('newCustomFoodDetails').open) {
+                uploadedCustomImageBase64 = base64;
+                showCustomDropzonePreview(base64);
+              } else if (document.getElementById('newPresetDetails').open) {
+                uploadedPresetImageBase64 = base64;
+                showPresetDropzonePreview(base64);
+              }
+            });
             break;
           }
         }
       });
-
-      clearBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        clearDropzoneImage();
-      });
     }
 
-    function processImageFile(file) {
+    function processImageFile(file, callback) {
       if (!file.type.match(/image.*/)) return;
       const reader = new FileReader();
       reader.onload = function(e) {
@@ -2867,27 +3147,42 @@
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, w, h);
 
-          uploadedPresetImageBase64 = canvas.toDataURL('image/jpeg', 0.8);
-          showDropzonePreview(uploadedPresetImageBase64);
+          const base64 = canvas.toDataURL('image/jpeg', 0.8);
+          callback(base64);
         };
         img.src = e.target.result;
       };
       reader.readAsDataURL(file);
     }
 
-    function showDropzonePreview(src) {
+    function showPresetDropzonePreview(src) {
       const preview = document.getElementById('presetPreviewImg');
       preview.src = src;
       preview.style.display = 'block';
       document.getElementById('btnClearImage').style.display = 'block';
     }
 
-    function clearDropzoneImage() {
+    function clearPresetDropzoneImage() {
       uploadedPresetImageBase64 = '';
       document.getElementById('presetFileInput').value = '';
       document.getElementById('presetPreviewImg').src = '';
       document.getElementById('presetPreviewImg').style.display = 'none';
       document.getElementById('btnClearImage').style.display = 'none';
+    }
+
+    function showCustomDropzonePreview(src) {
+      const preview = document.getElementById('customFoodPreviewImg');
+      preview.src = src;
+      preview.style.display = 'block';
+      document.getElementById('btnClearCustomImage').style.display = 'block';
+    }
+
+    function clearCustomDropzoneImage() {
+      uploadedCustomImageBase64 = '';
+      document.getElementById('customFoodFileInput').value = '';
+      document.getElementById('customFoodPreviewImg').src = '';
+      document.getElementById('customFoodPreviewImg').style.display = 'none';
+      document.getElementById('btnClearCustomImage').style.display = 'none';
     }
 
     function renderModalPresets(keyword) {
@@ -2976,9 +3271,9 @@
 
       if (preset.image) {
         uploadedPresetImageBase64 = preset.image;
-        showDropzonePreview(preset.image);
+        showPresetDropzonePreview(preset.image);
       } else {
-        clearDropzoneImage();
+        clearPresetDropzoneImage();
       }
 
       document.getElementById('presetFormSummary').textContent = 'マイ定番を編集中';
@@ -2994,7 +3289,7 @@
       document.getElementById('newPresetP').value = '';
       document.getElementById('newPresetF').value = '';
       document.getElementById('newPresetC').value = '';
-      clearDropzoneImage();
+      clearPresetDropzoneImage();
 
       document.getElementById('presetFormSummary').textContent = '+ 新しいマイ定番を登録する';
       document.getElementById('btnSavePreset').textContent = '定番に保存';
@@ -3056,7 +3351,6 @@
       );
     }
 
-    /* カレンダー描画 */
     function renderCalendar() {
       const year = calendarDate.getFullYear();
       const month = calendarDate.getMonth();
@@ -3149,7 +3443,6 @@
       renderCalendar();
     });
 
-    /* 履歴リスト描画 */
     function renderList() {
       const listEl = document.getElementById('historyList');
       const countEl = document.getElementById('historyCount');
@@ -3211,7 +3504,6 @@
       }
     }
 
-    /* グラフ */
     function initChart() {
       const ctx = document.getElementById('weightChart').getContext('2d');
       chartInstance = new Chart(ctx, {
