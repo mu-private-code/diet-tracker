@@ -3731,25 +3731,25 @@
       const validWeights = weights.filter(w => typeof w === 'number' && !isNaN(w));
       const validFats = fats.filter(f => typeof f === 'number' && !isNaN(f));
 
-      // 体重：0.5刻み（上下適度な余白）
-      let wMin = 48, wMax = 52;
+      // 体重：0.5刻み（上限＝最大体重＋1.0kg、下限＝最小体重から余裕を持たせる）
+      let wMin = 48, wMax = 53;
       if (validWeights.length > 0) {
         const minVal = Math.min(...validWeights);
         const maxVal = Math.max(...validWeights);
         wMin = Math.floor((minVal - 0.5) * 2) / 2;
-        wMax = Math.ceil((maxVal + 0.5) * 2) / 2;
-        if (wMin === wMax) { wMin -= 0.5; wMax += 0.5; }
+        wMax = Math.ceil((maxVal + 1.0) * 2) / 2; // 【ご要望対応】上限は最大体重＋1kgに設定
+        if (wMin === wMax) { wMin -= 0.5; wMax += 1.0; }
       }
       chartInstance.options.scales.yWeight.min = wMin;
       chartInstance.options.scales.yWeight.max = wMax;
 
-      // 体脂肪率：0.2刻み（最小値のさらに -0.4 下からスタートし、体重と交差しないよう上下に余白を確保）
+      // 体脂肪率：0.2刻み（最小値の -0.4 からスタートして下線にペタッとつかないように調整）
       let fMin = 18, fMax = 28;
       if (validFats.length > 0) {
         const minVal = Math.min(...validFats);
         const maxVal = Math.max(...validFats);
-        fMin = Math.floor((minVal - 0.4) * 5) / 5; // 最小値の -0.4 からスタート
-        fMax = Math.ceil((maxVal + 0.6) * 5) / 5;  // 上部にも余裕を持たせる
+        fMin = Math.floor((minVal - 0.4) * 5) / 5; // 【ご要望対応】最小値のさらに -0.4 からスタート
+        fMax = Math.ceil((maxVal + 0.6) * 5) / 5;  
         if (fMin === fMax) { fMin -= 0.4; fMax += 0.4; }
       }
       chartInstance.options.scales.yFat.min = fMin;
@@ -3757,7 +3757,7 @@
 
       chartInstance.update();
 
-      // 固定目盛り＆背景グリッド線の連動描画
+      // 固定目盛り＆背景グリッド線の連動描画（体重0.5刻み、体脂肪率0.2刻み）
       renderFixedAxes(wMin, wMax, fMin, fMax, showWeight, showFat);
 
       const maxScrollLeft = container.scrollWidth - container.clientWidth;
