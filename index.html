@@ -1143,19 +1143,60 @@
       border-color: var(--accent);
     }
 
-    /* ヘルスケア風 横スクロールコンテナ */
-    .chart-scroll-container {
+    /* 固定目盛り＋スクロールステージ（背景グリッド線対応） */
+    .chart-stage-container {
+      position: relative;
+      display: flex;
+      height: 280px;
       width: 100%;
+      margin-bottom: 12px;
+      overflow: hidden;
+      background: #fff;
+      border-radius: 8px;
+    }
+
+    .chart-axis-left, .chart-axis-right {
+      position: relative;
+      height: 100%;
+      z-index: 10;
+      background: #fff;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 10px 4px 30px 4px;
+      font-size: 10px;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .chart-axis-left {
+      width: 42px;
+      border-right: 1px solid #f0ebe1;
+      text-align: right;
+      color: #9c826b;
+      font-weight: 600;
+    }
+
+    .chart-axis-right {
+      width: 38px;
+      border-left: 1px solid #f0ebe1;
+      text-align: left;
+      color: #c48b71;
+      font-weight: 600;
+    }
+
+    .chart-scroll-container {
+      flex: 1;
       overflow-x: auto;
       overflow-y: hidden;
-      padding-bottom: 8px;
       -webkit-overflow-scrolling: touch;
-      margin-bottom: 12px;
+      position: relative;
     }
 
     .chart-inner-wrapper {
       position: relative;
-      height: 280px;
+      height: 100%;
       min-width: 100%;
     }
 
@@ -1348,7 +1389,8 @@
             </div>
             <div class="form-group">
               <label for="weight">体重 (kg)</label>
-              <input type="number" id="weight" step="0.1" min="20" max="200" placeholder="50.0" required>
+              <!-- 体重なしでもお通じ等の記録ができるよう required を外しました -->
+              <input type="number" id="weight" step="0.1" min="20" max="200" placeholder="50.0">
             </div>
             <div class="form-group">
               <label for="fat">体脂肪率 (%)</label>
@@ -1736,11 +1778,20 @@
           </div>
         </div>
 
-        <!-- ヘルスケア風 横スクロールエリア -->
-        <div class="chart-scroll-container" id="chartScrollContainer">
-          <div class="chart-inner-wrapper" id="chartInnerWrapper">
-            <canvas id="weightChart"></canvas>
+        <!-- 固定目盛り＋スクロールステージ（背景グリッド線対応） -->
+        <div class="chart-stage-container">
+          <!-- 左側固定：体重目盛り (0.5刻み) -->
+          <div class="chart-axis-left" id="fixedYWeightAxis"></div>
+
+          <!-- 中央：スクロール領域 -->
+          <div class="chart-scroll-container" id="chartScrollContainer">
+            <div class="chart-inner-wrapper" id="chartInnerWrapper">
+              <canvas id="weightChart"></canvas>
+            </div>
           </div>
+
+          <!-- 右側固定：体脂肪率目盛り (0.2刻み) -->
+          <div class="chart-axis-right" id="fixedYFatAxis"></div>
         </div>
 
         <div class="chart-info-bar">
@@ -2058,7 +2109,7 @@
       targetC: 220
     };
 
-    let currentSpanDays = 7; // デフォルト：週（7日）
+    let currentSpanDays = 7;
     let currentMode = 'both';
     let chartInstance = null;
     let calendarDate = new Date();
@@ -2150,7 +2201,6 @@
       renderMealSlots();
       initChart();
 
-      // 横スクロール時に表示中の日付範囲をリアルタイム更新するリスナー
       const scrollContainer = document.getElementById('chartScrollContainer');
       scrollContainer.addEventListener('scroll', () => {
         updateChartDateRangeDisplay();
@@ -2265,8 +2315,8 @@
       syncMealScoreUI(dateKey);
       const rec = records.find(r => r.date === dateKey);
       if (rec) {
-        document.getElementById('weight').value = rec.weight;
-        document.getElementById('fat').value = rec.fat !== null ? rec.fat : '';
+        document.getElementById('weight').value = rec.weight !== null && rec.weight !== undefined ? rec.weight : '';
+        document.getElementById('fat').value = rec.fat !== null && rec.fat !== undefined ? rec.fat : '';
         const bowelVal = rec.bowel || '未記録';
         const radio = document.querySelector(`input[name="bowel"][value="${bowelVal}"]`);
         if (radio) radio.checked = true;
@@ -2553,9 +2603,10 @@
       e.preventDefault();
 
       const date = document.getElementById('date').value;
-      const weight = parseFloat(document.getElementById('weight').value);
+      const weightInput = document.getElementById('weight').value;
+      const weight = weightInput !== '' ? parseFloat(weightInput) : null;
       const fatInput = document.getElementById('fat').value;
-      const fat = fatInput ? parseFloat(fatInput) : null;
+      const fat = fatInput !== '' ? parseFloat(fatInput) : null;
       const bowel = document.querySelector('input[name="bowel"]:checked').value;
 
       const existingIndex = records.findIndex(r => r.date === date);
@@ -2579,8 +2630,8 @@
       if (!rec) return;
 
       setDateValue('date', rec.date);
-      document.getElementById('weight').value = rec.weight;
-      document.getElementById('fat').value = rec.fat !== null ? rec.fat : '';
+      document.getElementById('weight').value = (rec.weight !== null && rec.weight !== undefined) ? rec.weight : '';
+      document.getElementById('fat').value = (rec.fat !== null && rec.fat !== undefined) ? rec.fat : '';
 
       const bowelVal = rec.bowel || '未記録';
       const radio = document.querySelector(`input[name="bowel"][value="${bowelVal}"]`);
@@ -3426,7 +3477,7 @@
         daySpan.textContent = d;
         cell.appendChild(daySpan);
 
-        if (rec) {
+        if (rec && rec.weight !== null && rec.weight !== undefined) {
           const weightSpan = document.createElement('span');
           weightSpan.className = 'cell-weight';
           weightSpan.textContent = `${rec.weight}`;
@@ -3510,14 +3561,17 @@
         const scoreIconHtml = (score && mealScoreIcons[score]) ? mealScoreIcons[score] : '';
 
         const weekdayInfo = getWeekdayInfo(record.date);
+        const weightDisplay = (record.weight !== null && record.weight !== undefined) ? `<strong>${record.weight} kg</strong>` : '<span style="color:var(--text-sub);">未計測</span>';
+        const fatDisplay = (record.fat !== null && record.fat !== undefined) ? record.fat + '%' : '-';
+
         const li = document.createElement('li');
         li.className = 'history-item';
         li.innerHTML = `
           <div class="history-data">
             <span class="history-date">${record.date.slice(5)} <span style="font-size:0.75rem;" class="${weekdayInfo.cls}">${weekdayInfo.text}</span></span>
-            <strong>${record.weight} kg</strong>
+            ${weightDisplay}
             <span style="color: var(--text-sub); font-size: 0.8rem;">
-              ${record.fat !== null ? record.fat + '%' : '-'}
+              ${fatDisplay}
             </span>
             <div class="history-icons">
               ${bowelIconHtml}
@@ -3562,7 +3616,8 @@
               pointRadius: 4,
               pointBackgroundColor: '#ffffff',
               pointBorderColor: '#9c826b',
-              pointBorderWidth: 2
+              pointBorderWidth: 2,
+              spanGaps: true
             },
             {
               label: '体脂肪率 (%)',
@@ -3585,6 +3640,9 @@
           responsive: true,
           maintainAspectRatio: false,
           interaction: { mode: 'index', intersect: false },
+          layout: {
+            padding: { top: 10, bottom: 0, left: 10, right: 10 }
+          },
           plugins: {
             legend: {
               display: true,
@@ -3605,15 +3663,13 @@
             },
             yWeight: {
               type: 'linear',
-              position: 'left',
-              grid: { color: '#f0ebe1' },
-              ticks: { color: '#9c826b', font: { size: 10 }, precision: 1 }
+              display: false,
+              grid: { color: '#f0ebe1', display: true } // グラフ内の横グリッド線を表示
             },
             yFat: {
               type: 'linear',
-              position: 'right',
-              grid: { drawOnChartArea: false },
-              ticks: { color: '#c48b71', font: { size: 10 }, precision: 1 }
+              display: false,
+              grid: { display: false }
             }
           }
         }
@@ -3646,14 +3702,15 @@
       const labels = allDates.map(d => d.slice(5));
       const weights = allDates.map(d => {
         const found = records.find(r => r.date === d);
-        return found ? found.weight : null;
+        return (found && found.weight !== null && found.weight !== undefined) ? found.weight : null;
       });
       const fats = allDates.map(d => {
         const found = records.find(r => r.date === d);
-        return (found && found.fat !== null) ? found.fat : null;
+        return (found && found.fat !== null && found.fat !== undefined) ? found.fat : null;
       });
 
-      const containerWidth = document.getElementById('chartScrollContainer').clientWidth || 500;
+      const container = document.getElementById('chartScrollContainer');
+      const containerWidth = container.clientWidth || 400;
       
       const pxPerDay = containerWidth / currentSpanDays;
       const calculatedWidth = allDates.length * pxPerDay;
@@ -3668,8 +3725,6 @@
 
       chartInstance.data.datasets[0].hidden = !showWeight;
       chartInstance.data.datasets[1].hidden = !showFat;
-      chartInstance.options.scales.yWeight.display = showWeight;
-      chartInstance.options.scales.yFat.display = showFat;
 
       chartInstance.data.datasets[0].data = weights;
       chartInstance.data.datasets[1].data = fats;
@@ -3677,40 +3732,82 @@
       const validWeights = weights.filter(w => typeof w === 'number' && !isNaN(w));
       const validFats = fats.filter(f => typeof f === 'number' && !isNaN(f));
 
-      if (currentMode === 'both' && validWeights.length > 0 && validFats.length > 0) {
-        const wMin = Math.min(...validWeights);
-        const wMax = Math.max(...validWeights);
-        const wMargin = Math.max((wMax - wMin) * 0.3, 0.8);
-        const wRange = (wMax - wMin) + wMargin * 2;
-        chartInstance.options.scales.yWeight.min = Math.floor((wMin - wMargin - wRange) * 10) / 10;
-        chartInstance.options.scales.yWeight.max = Math.ceil((wMax + wMargin) * 10) / 10;
-
-        const fMin = Math.min(...validFats);
-        const fMax = Math.max(...validFats);
-        const fMargin = Math.max((fMax - fMin) * 0.3, 0.5);
-        const fRange = (fMax - fMin) + fMargin * 2;
-        chartInstance.options.scales.yFat.min = Math.max(0, Math.floor((fMin - fMargin) * 10) / 10);
-        chartInstance.options.scales.yFat.max = Math.ceil((fMax + fMargin + fRange) * 10) / 10;
-      } else {
-        delete chartInstance.options.scales.yWeight.min;
-        delete chartInstance.options.scales.yWeight.max;
-        delete chartInstance.options.scales.yFat.min;
-        delete chartInstance.options.scales.yFat.max;
+      // 体重：0.5刻みスケール算出
+      let wMin = 45, wMax = 55;
+      if (validWeights.length > 0) {
+        const minVal = Math.min(...validWeights);
+        const maxVal = Math.max(...validWeights);
+        const margin = Math.max((maxVal - minVal) * 0.25, 0.8);
+        wMin = Math.floor((minVal - margin) * 2) / 2;
+        wMax = Math.ceil((maxVal + margin) * 2) / 2;
+        if (wMin === wMax) { wMin -= 1; wMax += 1; }
       }
+      chartInstance.options.scales.yWeight.min = wMin;
+      chartInstance.options.scales.yWeight.max = wMax;
+
+      // 体脂肪率：0.2刻みスケール算出
+      let fMin = 15, fMax = 30;
+      if (validFats.length > 0) {
+        const minVal = Math.min(...validFats);
+        const maxVal = Math.max(...validFats);
+        const margin = Math.max((maxVal - minVal) * 0.25, 0.8);
+        fMin = Math.floor((minVal - margin) * 5) / 5;
+        fMax = Math.ceil((maxVal + margin) * 5) / 5;
+        if (fMin === fMax) { fMin -= 1; fMax += 1; }
+      }
+      chartInstance.options.scales.yFat.min = fMin;
+      chartInstance.options.scales.yFat.max = fMax;
 
       chartInstance.update();
 
-      const container = document.getElementById('chartScrollContainer');
+      // 固定目盛りを描画（体重0.5刻み、体脂肪率0.2刻み）
+      renderFixedAxes(wMin, wMax, fMin, fMax, showWeight, showFat);
+
       const maxScrollLeft = container.scrollWidth - container.clientWidth;
       container.scrollLeft = Math.max(0, maxScrollLeft);
 
       updateChartDateRangeDisplay();
     }
 
+    function renderFixedAxes(wMin, wMax, fMin, fMax, showWeight, showFat) {
+      const leftAxis = document.getElementById('fixedYWeightAxis');
+      const rightAxis = document.getElementById('fixedYFatAxis');
+
+      leftAxis.innerHTML = '';
+      rightAxis.innerHTML = '';
+
+      leftAxis.style.visibility = showWeight ? 'visible' : 'hidden';
+      rightAxis.style.visibility = showFat ? 'visible' : 'hidden';
+
+      // 体重：0.5刻み
+      let wDiff = wMax - wMin;
+      let wSteps = Math.round(wDiff / 0.5);
+      if (wSteps < 2) wSteps = 4;
+      if (wSteps > 12) wSteps = 10;
+      for (let i = wSteps; i >= 0; i--) {
+        const val = (wMin + wDiff * (i / wSteps)).toFixed(1);
+        const span = document.createElement('span');
+        span.textContent = val;
+        leftAxis.appendChild(span);
+      }
+
+      // 体脂肪率：0.2刻み
+      let fDiff = fMax - fMin;
+      let fSteps = Math.round(fDiff / 0.2);
+      if (fSteps < 2) fSteps = 5;
+      if (fSteps > 15) fSteps = 10;
+      for (let i = fSteps; i >= 0; i--) {
+        const val = (fMin + fDiff * (i / fSteps)).toFixed(1);
+        const span = document.createElement('span');
+        span.textContent = val;
+        rightAxis.appendChild(span);
+      }
+    }
+
     function updateChartDateRangeDisplay() {
       if (!chartInstance || chartInstance.data.labels.length === 0) return;
       const container = document.getElementById('chartScrollContainer');
-      const scrollLeft = container.scrollLeft;
+      const scrollLeft = container.scrollWidth > container.clientWidth ? container.scrollLeft : 0;
       const totalWidth = container.scrollWidth;
       const totalDays = chartInstance.data.labels.length;
       if (totalWidth <= 0) return;
