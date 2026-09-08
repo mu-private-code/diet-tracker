@@ -3728,29 +3728,44 @@
       chartInstance.data.datasets[0].data = weights;
       chartInstance.data.datasets[1].data = fats;
 
-      const validWeights = weights.filter(w => typeof w === 'number' && !isNaN(w));
-      const validFats = fats.filter(f => typeof f === 'number' && !isNaN(f));
+      // 【重要】現在画面に表示されている期間（直近の currentSpanDays 分）のデータだけを抽出してスケールを計算する
+      const visibleWeights = weights.slice(-currentSpanDays).filter(w => typeof w === 'number' && !isNaN(w));
+      const visibleFats = fats.slice(-currentSpanDays).filter(f => typeof f === 'number' && !isNaN(f));
 
-      // 体重：0.5刻み（下限＝最小体重から-0.5、上限＝最大体重＋1.0kg）
+      // 体重：表示期間内のデータに基づき、最小値〜最大値＋1kgでレンジを決定
       let wMin = 46, wMax = 52;
-      if (validWeights.length > 0) {
-        const minVal = Math.min(...validWeights);
-        const maxVal = Math.max(...validWeights);
-        wMin = Math.floor((minVal - 0.5) * 2) / 2; // 下側に0.5kgの余裕を持たせる
-        wMax = Math.ceil((maxVal + 1.0) * 2) / 2;   // 上限は最大体重＋1kg
+      if (visibleWeights.length > 0) {
+        const minVal = Math.min(...visibleWeights);
+        const maxVal = Math.max(...visibleWeights);
+        wMin = Math.floor((minVal - 0.5) * 2) / 2;
+        wMax = Math.ceil((maxVal + 1.0) * 2) / 2; // 最大体重＋1kg
         if (wMin === wMax) { wMin -= 0.5; wMax += 1.0; }
+      } else if (weights.length > 0) {
+        const validAllW = weights.filter(w => typeof w === 'number' && !isNaN(w));
+        if (validAllW.length > 0) {
+          const lW = validAllW[validAllW.length - 1];
+          wMin = Math.floor((lW - 2) * 2) / 2;
+          wMax = Math.ceil((lW + 2) * 2) / 2;
+        }
       }
       chartInstance.options.scales.yWeight.min = wMin;
       chartInstance.options.scales.yWeight.max = wMax;
 
-      // 体脂肪率：0.2刻み（最小値の -0.4 からスタートし、上限にも適度な余持たせて体重線と交差させない）
+      // 体脂肪率：表示期間内のデータに基づきレンジを決定
       let fMin = 20, fMax = 30;
-      if (validFats.length > 0) {
-        const minVal = Math.min(...validFats);
-        const maxVal = Math.max(...validFats);
-        fMin = Math.floor((minVal - 0.4) * 5) / 5; // 最小値のさらに -0.4 からスタート
-        fMax = Math.ceil((maxVal + 0.8) * 5) / 5;  // 上部にも余裕を持たせて体重線と離す
-        if (fMin === fMax) { fMin -= 0.4; fMax += 0.8; }
+      if (visibleFats.length > 0) {
+        const minVal = Math.min(...visibleFats);
+        const maxVal = Math.max(...visibleFats);
+        fMin = Math.floor((minVal - 0.4) * 5) / 5;
+        fMax = Math.ceil((maxVal + 0.8) * 5) / 5;
+        if (fMin === fMax) { fMin -= 0.4; fMax += 0.4; }
+      } else if (fats.length > 0) {
+        const validAllF = fats.filter(f => typeof f === 'number' && !isNaN(f));
+        if (validAllF.length > 0) {
+          const lF = validAllF[validAllF.length - 1];
+          fMin = Math.floor((lF - 3) * 5) / 5;
+          fMax = Math.ceil((lF + 3) * 5) / 5;
+        }
       }
       chartInstance.options.scales.yFat.min = fMin;
       chartInstance.options.scales.yFat.max = fMax;
