@@ -2057,7 +2057,7 @@
       targetC: 220
     };
 
-    let currentPeriodDays = 30;
+    let currentSpanDays = 30; // 7, 30, 90, 180, 365
     let currentMode = 'both';
     let chartInstance = null;
     let calendarDate = new Date();
@@ -3616,31 +3616,24 @@
     function updateChart() {
       if (!chartInstance) return;
 
+      // データが存在する場合は「最古の記録日」から今日まで、データがない場合は「選択した期間（例：30日）」の全日付を生成
       let allDates = [];
+      const today = new Date();
+      today.setHours(0,0,0,0);
+
+      let startDate = new Date(today);
+      startDate.setDate(startDate.getDate() - currentSpanDays + 1);
+
       if (records.length > 0) {
         const sortedRecs = [...records].sort((a,b) => new Date(a.date) - new Date(b.date));
-        const firstDate = new Date(sortedRecs[0].date + 'T00:00:00');
-        const today = new Date();
-        today.setHours(0,0,0,0);
+        const firstRecDate = new Date(sortedRecs[0].date + 'T00:00:00');
+        if (startDate < firstRecDate) startDate = firstRecDate;
+      }
 
-        let startDate = new Date(today);
-        startDate.setDate(startDate.getDate() - currentPeriodDays + 1);
-        if (startDate < firstDate) startDate = firstDate;
-
-        let curr = new Date(startDate);
-        while (curr <= today) {
-          allDates.push(formatDate(curr));
-          curr.setDate(curr.getDate() + 1);
-        }
-      } else {
-        const today = new Date();
-        let startDate = new Date(today);
-        startDate.setDate(startDate.getDate() - currentPeriodDays + 1);
-        let curr = new Date(startDate);
-        while (curr <= today) {
-          allDates.push(formatDate(curr));
-          curr.setDate(curr.getDate() + 1);
-        }
+      let curr = new Date(startDate);
+      while (curr <= today) {
+        allDates.push(formatDate(curr));
+        curr.setDate(curr.getDate() + 1);
       }
 
       const labels = allDates.map(d => d.slice(5));
@@ -3653,8 +3646,12 @@
         return (found && found.fat !== null) ? found.fat : null;
       });
 
-      const minWidthPerDay = currentPeriodDays <= 30 ? 25 : (currentPeriodDays <= 90 ? 12 : 6);
-      const calculatedWidth = Math.max(500, allDates.length * minWidthPerDay);
+      // 1画面に「選択した日数分（currentSpanDays）」がちょうど収まるように横幅を動的に広げる
+      // （例: 週なら7日分の幅、月なら30日分の幅になり、横スクロールで過去の全データにアクセス可能）
+      const containerWidth = document.getElementById('chartScrollContainer').clientWidth || 500;
+      const minWidthPerDay = containerWidth / Math.min(currentSpanDays, allDates.length);
+      const calculatedWidth = Math.max(containerWidth, allDates.length * Math.max(minWidthPerDay, 25));
+      
       document.getElementById('chartInnerWrapper').style.width = calculatedWidth + 'px';
       chartInstance.resize();
 
@@ -3701,6 +3698,7 @@
 
       chartInstance.update();
 
+      // 初期表示時は一番右（今日）にスクロール位置を合わせる
       const container = document.getElementById('chartScrollContainer');
       container.scrollLeft = container.scrollWidth;
     }
@@ -3709,7 +3707,7 @@
       btn.addEventListener('click', (e) => {
         document.querySelectorAll('.btn-period').forEach(b => b.classList.remove('active'));
         e.target.classList.add('active');
-        currentPeriodDays = parseInt(e.target.dataset.period, 10);
+        currentSpanDays = parseInt(e.target.dataset.period, 10);
         updateChart();
       });
     });
