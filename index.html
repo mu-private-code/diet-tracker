@@ -3624,7 +3624,6 @@
     function updateChart() {
       if (!chartInstance) return;
 
-      // 過去最大1年分〜今日までの全カレンダー日付プールを構築
       const today = new Date();
       today.setHours(0,0,0,0);
 
@@ -3654,11 +3653,10 @@
         return (found && found.fat !== null) ? found.fat : null;
       });
 
-      // グラフ全体の横幅を日数に完全同期させる
-      // 各期間（週=7日, 月=30日, 3ヶ月=90日）が正確に指定日数分の幅を持つように設定
       const containerWidth = document.getElementById('chartScrollContainer').clientWidth || 500;
-      // 1日あたりのピクセル幅を、画面幅を「currentSpanDays」で割った値（最低でも1日あたり一定の幅を確保）
-      const pxPerDay = Math.max(containerWidth / currentSpanDays, 25);
+      
+      // 【修正箇所】選択した日数（7, 30, 90）が画面幅にぴったり収まるように全体幅を計算
+      const pxPerDay = containerWidth / currentSpanDays;
       const calculatedWidth = allDates.length * pxPerDay;
       
       document.getElementById('chartInnerWrapper').style.width = calculatedWidth + 'px';
@@ -3703,11 +3701,10 @@
 
       chartInstance.update();
 
-      // ボタン切替時に、正確に選択した日数（7日、30日、90日）が画面右端（今日）を起点にぴったり収まるようスクロール位置を調整
+      // 今日（右端）を基準にスクロール位置を調整
       const container = document.getElementById('chartScrollContainer');
       const maxScrollLeft = container.scrollWidth - container.clientWidth;
-      const targetScroll = maxScrollLeft; // 一番右（今日）に合わせる
-      container.scrollLeft = Math.max(0, targetScroll);
+      container.scrollLeft = Math.max(0, maxScrollLeft);
 
       updateChartDateRangeDisplay();
     }
@@ -3720,22 +3717,12 @@
       const totalDays = chartInstance.data.labels.length;
       if (totalWidth <= 0) return;
 
-      // スクロール位置から現在の左端・右端の日付インデックスを正確に逆算
       const pxPerDay = totalWidth / totalDays;
       const visibleDays = container.clientWidth / pxPerDay;
 
       const startIndex = Math.round(scrollLeft / pxPerDay);
       const endIndex = Math.min(totalDays - 1, Math.round(startIndex + visibleDays - 1));
 
-      const labels = chartInstance.data.labels;
-      const allDates = chartInstance.data.labels.map(l => {
-        // ラベルから日付文字列を復元するための全プール配列を再利用
-        return l;
-      });
-
-      const currentYear = new Date().getFullYear();
-
-      // プールの開始日を逆算して正確な日付文字列を表示
       const today = new Date();
       today.setHours(0,0,0,0);
       let startDate = new Date(today);
