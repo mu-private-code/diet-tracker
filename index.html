@@ -1103,6 +1103,7 @@
       font-size: 0.68rem;
     }
 
+    /* グラフコントロール＆スクロール */
     .chart-controls-wrapper {
       display: flex;
       flex-direction: column;
@@ -1118,15 +1119,16 @@
 
     .btn-group {
       display: flex;
-      gap: 6px;
+      gap: 4px;
+      flex-wrap: wrap;
     }
 
     .btn-chip {
-      padding: 5px 10px;
+      padding: 5px 8px;
       background: #fff;
       border: 1px solid var(--border);
       border-radius: 6px;
-      font-size: 0.78rem;
+      font-size: 0.75rem;
       cursor: pointer;
       color: var(--text-sub);
       transition: all 0.15s;
@@ -1138,10 +1140,32 @@
       border-color: var(--accent);
     }
 
-    .chart-wrapper {
-      position: relative;
-      height: 300px;
+    /* ヘルスケア風 横スクロールコンテナ */
+    .chart-scroll-container {
       width: 100%;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding-bottom: 8px;
+      -webkit-overflow-scrolling: touch;
+      margin-bottom: 12px;
+    }
+
+    .chart-inner-wrapper {
+      position: relative;
+      height: 280px;
+      min-width: 100%;
+    }
+
+    .chart-info-bar {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      font-size: 0.8rem;
+      color: var(--text-sub);
+      background: #faf8f5;
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
     }
 
     .history-list {
@@ -1279,7 +1303,7 @@
       <button type="button" class="btn-settings-trigger" id="btnOpenSettings" title="設定">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"/>
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09A1.65 1.65 0 0 0-1.51 1z"/>
         </svg>
       </button>
     </header>
@@ -1692,25 +1716,34 @@
       <section class="card">
         <div class="chart-controls-wrapper">
           <div class="control-row">
-            <span style="font-size: 0.82rem; font-weight: 600; color: var(--text-sub);">期間</span>
+            <span style="font-size: 0.82rem; font-weight: 600; color: var(--text-sub);">表示期間</span>
             <div class="btn-group">
-              <button class="btn-chip btn-period active" data-period="7">1週間</button>
-              <button class="btn-chip btn-period" data-period="30">1ヶ月</button>
+              <button class="btn-chip btn-period active" data-period="7">週</button>
+              <button class="btn-chip btn-period" data-period="30">月</button>
+              <button class="btn-chip btn-period" data-period="90">3ヶ月</button>
+              <button class="btn-chip btn-period" data-period="180">6ヶ月</button>
               <button class="btn-chip btn-period" data-period="365">1年</button>
             </div>
           </div>
           <div class="control-row">
             <span style="font-size: 0.82rem; font-weight: 600; color: var(--text-sub);">表示項目</span>
             <div class="btn-group">
-              <button class="btn-chip btn-chip-mode active" data-mode="both">両方（上下）</button>
+              <button class="btn-chip btn-chip-mode active" data-mode="both">両方</button>
               <button class="btn-chip btn-chip-mode" data-mode="weight">体重のみ</button>
-              <button class="btn-chip btn-chip-mode" data-mode="fat">体脂肪率のみ</button>
+              <button class="btn-chip btn-chip-mode" data-mode="fat">体脂肪のみ</button>
             </div>
           </div>
         </div>
 
-        <div class="chart-wrapper">
-          <canvas id="weightChart"></canvas>
+        <!-- ヘルスケア風 横スクロールエリア -->
+        <div class="chart-scroll-container" id="chartScrollContainer">
+          <div class="chart-inner-wrapper" id="chartInnerWrapper">
+            <canvas id="weightChart"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-info-bar">
+          <span id="chartRangeDisplay">期間を表示中</span>
         </div>
       </section>
     </div>
@@ -1754,7 +1787,6 @@
               <input type="text" id="newFoodName" placeholder="商品名 (例: 特製ハンバーグ...)">
               <input type="text" id="newFoodKana" placeholder="ひらがな検索用 (例: とくせいはいんばーぐ)">
               
-              <!-- 単位の選択 -->
               <div style="display: flex; align-items: center; gap: 8px;">
                 <label style="font-size:0.8rem;">単位・計算方式:</label>
                 <select id="newFoodUnitType" style="padding: 4px 8px; font-size: 0.8rem;">
@@ -1764,7 +1796,6 @@
               </div>
               <input type="text" id="newFoodCustomUnitName" placeholder="単位名 (例: 個、パック、枚 ※個・パック単位選択時)" style="display:none;">
 
-              <!-- 画像登録用ドロップゾーン -->
               <div class="dropzone-area" id="customFoodDropzone">
                 <div style="font-size:0.78rem; color:var(--text-sub);">
                   食材画像をドラッグ＆ドロップ、またはクリックして選択<br>
@@ -1983,7 +2014,6 @@
 
     let presets = loadUserPresets();
 
-    // デフォルト一般食材リスト
     const BASE_DEFAULT_FOODS = [
       { id: 'def_1', name: '白米 (ご飯)', maker: '', kana: 'はくまい ごはん', kcal: 156, p: 2.5, f: 0.3, c: 35.6, unit: 'g', defaultAmount: 100, isTotalValue: false, image: '', isDefault: true },
       { id: 'def_2', name: '玄米 (ご飯)', maker: '', kana: 'げんまい', kcal: 152, p: 2.8, f: 1.0, c: 34.2, unit: 'g', defaultAmount: 100, isTotalValue: false, image: '', isDefault: true },
@@ -1999,9 +2029,9 @@
       { id: 'def_12', name: 'バナナ', maker: '', kana: 'ばなな', kcal: 93, p: 1.1, f: 0.2, c: 22.5, unit: 'g', defaultAmount: 100, isTotalValue: false, image: '', isDefault: true },
       { id: 'def_13', name: '牛乳', maker: '', kana: 'ぎゅうにゅう', kcal: 61, p: 3.3, f: 3.8, c: 4.8, unit: 'ml', defaultAmount: 200, isTotalValue: false, image: '', isDefault: true },
       { id: 'def_14', name: '旨味ひきわりミニ1パック', maker: 'タカノフーズ', kana: 'うまみひきわりみにとっぷ', kcal: 97, p: 8.4, f: 5.0, c: 6.3, unit: 'パック', defaultAmount: 1, isTotalValue: true, image: '', isDefault: true },
-      { id: 'def_15', name: 'ギリシャヨーグルト パルテノ クリーミーバニラ', maker: '森永乳業', kana: 'ぎりしゃよーぐると ぱるての くりーみーばにら', kcal: 114, p: 10.0, f: 4.2, c: 9.1, unit: '個', defaultAmount: 1, isTotalValue: true, image: '', isDefault: true },
-      { id: 'def_16', name: 'MILK PROTEIN ヨーグルト 脂肪0 ピーチ', maker: 'ザバス', kana: 'ざばす みるくぷろていん よーぐると しぼうぜろ ぴーち', kcal: 90, p: 15.0, f: 0.0, c: 7.7, unit: '個', defaultAmount: 1, isTotalValue: true, image: '', isDefault: true },
-      { id: 'def_17', name: 'MILK PROTEIN ヨーグルト 脂肪0 マンゴー', maker: 'ザバス', kana: 'ざばす みるくぷろていん よーぐると しぼうぜろ まんごー', kcal: 90, p: 15.0, f: 0.0, c: 7.7, unit: '個', defaultAmount: 1, isTotalValue: true, image: '', isDefault: true },
+      { id: 'def_15', name: 'ギリシャヨーグルト パルテノ クリーミーバニラ', maker: '森永乳業', kana: 'ぎりしゃよ-ぐると ぱるての くり-み-ばにら', kcal: 114, p: 10.0, f: 4.2, c: 9.1, unit: '個', defaultAmount: 1, isTotalValue: true, image: '', isDefault: true },
+      { id: 'def_16', name: 'MILK PROTEIN ヨーグルト 脂肪0 ピーチ', maker: 'ザバス', kana: 'ざばす みるくぷろていん よ-ぐると しぼうぜろ ぴ-ち', kcal: 90, p: 15.0, f: 0.0, c: 7.7, unit: '個', defaultAmount: 1, isTotalValue: true, image: '', isDefault: true },
+      { id: 'def_17', name: 'MILK PROTEIN ヨーグルト 脂肪0 マンゴー', maker: 'ザバス', kana: 'ざばす みるくぷろていん よ-ぐると しぼうぜろ まんご-', kcal: 90, p: 15.0, f: 0.0, c: 7.7, unit: '個', defaultAmount: 1, isTotalValue: true, image: '', isDefault: true },
       { id: 'def_18', name: '生卵', maker: '', kana: 'なまたまご たまご', kcal: 76, p: 6.2, f: 5.2, c: 0.2, unit: '個', defaultAmount: 1, isTotalValue: true, image: '', isDefault: true }
     ];
 
@@ -2027,7 +2057,7 @@
       targetC: 220
     };
 
-    let currentPeriod = 7;
+    let currentPeriodDays = 30;
     let currentMode = 'both';
     let chartInstance = null;
     let calendarDate = new Date();
@@ -3586,13 +3616,51 @@
     function updateChart() {
       if (!chartInstance) return;
 
-      const cutoffDate = new Date();
-      cutoffDate.setDate(cutoffDate.getDate() - currentPeriod);
+      let allDates = [];
+      if (records.length > 0) {
+        const sortedRecs = [...records].sort((a,b) => new Date(a.date) - new Date(b.date));
+        const firstDate = new Date(sortedRecs[0].date + 'T00:00:00');
+        const today = new Date();
+        today.setHours(0,0,0,0);
 
-      const filtered = records.filter(r => new Date(r.date) >= cutoffDate);
-      const labels = filtered.map(r => r.date.slice(5));
-      const weights = filtered.map(r => r.weight);
-      const fats = filtered.map(r => (r.fat !== null ? r.fat : null));
+        let startDate = new Date(today);
+        startDate.setDate(startDate.getDate() - currentPeriodDays + 1);
+        if (startDate < firstDate) startDate = firstDate;
+
+        let curr = new Date(startDate);
+        while (curr <= today) {
+          allDates.push(formatDate(curr));
+          curr.setDate(curr.getDate() + 1);
+        }
+      } else {
+        const today = new Date();
+        let startDate = new Date(today);
+        startDate.setDate(startDate.getDate() - currentPeriodDays + 1);
+        let curr = new Date(startDate);
+        while (curr <= today) {
+          allDates.push(formatDate(curr));
+          curr.setDate(curr.getDate() + 1);
+        }
+      }
+
+      const labels = allDates.map(d => d.slice(5));
+      const weights = allDates.map(d => {
+        const found = records.find(r => r.date === d);
+        return found ? found.weight : null;
+      });
+      const fats = allDates.map(d => {
+        const found = records.find(r => r.date === d);
+        return (found && found.fat !== null) ? found.fat : null;
+      });
+
+      const minWidthPerDay = currentPeriodDays <= 30 ? 25 : (currentPeriodDays <= 90 ? 12 : 6);
+      const calculatedWidth = Math.max(500, allDates.length * minWidthPerDay);
+      document.getElementById('chartInnerWrapper').style.width = calculatedWidth + 'px';
+      chartInstance.resize();
+
+      if (allDates.length > 0) {
+        document.getElementById('chartRangeDisplay').textContent = `${allDates[0].replace(/-/g,'/')} 〜 ${allDates[allDates.length-1].replace(/-/g,'/')}`;
+      }
 
       chartInstance.data.labels = labels;
 
@@ -3632,13 +3700,16 @@
       }
 
       chartInstance.update();
+
+      const container = document.getElementById('chartScrollContainer');
+      container.scrollLeft = container.scrollWidth;
     }
 
     document.querySelectorAll('.btn-period').forEach(btn => {
       btn.addEventListener('click', (e) => {
         document.querySelectorAll('.btn-period').forEach(b => b.classList.remove('active'));
         e.target.classList.add('active');
-        currentPeriod = parseInt(e.target.dataset.period, 10);
+        currentPeriodDays = parseInt(e.target.dataset.period, 10);
         updateChart();
       });
     });
