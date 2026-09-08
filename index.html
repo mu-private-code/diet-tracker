@@ -1789,7 +1789,7 @@
             </div>
           </div>
 
-          <!-- 右側固定：体脂肪率目盛り (0.2刻み) -->
+          <!-- 右側固定：体脂肪率目盛り (0.5刻み) -->
           <div class="chart-axis-right" id="fixedYFatAxis"></div>
         </div>
 
@@ -3728,51 +3728,60 @@
       chartInstance.data.datasets[0].data = weights;
       chartInstance.data.datasets[1].data = fats;
 
-      // 【重要】現在画面に表示されている期間（直近の currentSpanDays 分）のデータだけを抽出してスケールを計算する
       const visibleWeights = weights.slice(-currentSpanDays).filter(w => typeof w === 'number' && !isNaN(w));
       const visibleFats = fats.slice(-currentSpanDays).filter(f => typeof f === 'number' && !isNaN(f));
 
-      // 体重：表示期間内のデータに基づき、最小値〜最大値＋1kgでレンジを決定
-      let wMin = 46, wMax = 52;
+      // 【要件の厳密な同期処理】
+      // 最近の平均体重から-5kgまで許容。ただし最小でもデータに基づく下限を考慮。
+      let avgWeight = 46.0;
       if (visibleWeights.length > 0) {
-        const minVal = Math.min(...visibleWeights);
-        const maxVal = Math.max(...visibleWeights);
-        wMin = Math.floor((minVal - 0.5) * 2) / 2;
-        wMax = Math.ceil((maxVal + 1.0) * 2) / 2; // 最大体重＋1kg
-        if (wMin === wMax) { wMin -= 0.5; wMax += 1.0; }
+        const sum = visibleWeights.reduce((a, b) => a + b, 0);
+        avgWeight = sum / visibleWeights.length;
       } else if (weights.length > 0) {
         const validAllW = weights.filter(w => typeof w === 'number' && !isNaN(w));
         if (validAllW.length > 0) {
-          const lW = validAllW[validAllW.length - 1];
-          wMin = Math.floor((lW - 2) * 2) / 2;
-          wMax = Math.ceil((lW + 2) * 2) / 2;
+          avgWeight = validAllW[validAllW.length - 1];
         }
       }
+
+      let wMin = Math.floor((avgWeight - 5.0) * 2) / 2;
+      if (visibleWeights.length > 0) {
+        const minVal = Math.min(...visibleWeights);
+        wMin = Math.min(wMin, Math.floor((minVal - 0.5) * 2) / 2);
+      }
+
+      // 上限は直近の最大値＋余裕、または最低でも48kgなどを網羅できるようにする
+      let maxValW = visibleWeights.length > 0 ? Math.max(...visibleWeights) : avgWeight;
+      let wMax = Math.ceil((Math.max(maxValW, 48.0) + 1.0) * 2) / 2;
+      if (wMin === wMax) wMax += 1.0;
+
+      // 体重軸と体脂肪率軸のレンジ幅・比率を完全に一致させ、上下の対応点を同期させる
+      // 例: 体重範囲(wMin ~ wMax) と 体脂肪率範囲(fMin ~ fMax) の「目盛り刻み数」を同じにする
+      let wDiff = wMax - wMin;
+      let steps = Math.round(wDiff / 0.5);
+      if (steps < 4) steps = 12; // デフォルト6kg幅(=12ステップ)など
+
+      wMax = wMin + (steps * 0.5);
+
+      // 体脂肪率側のレンジを体重側と全く同じステップ数(0.5刻み)で連動させる
+      // 基準の対応関係：たとえば中央付近や特定の値を同期させるか、あるいはスパンを一致させる
+      // ここではスパンを一致させつつ、体脂肪率の中央値が適切になるように配置
+      let avgFat = 28.0;
+      if (visibleFats.length > 0) {
+        avgFat = visibleFats.reduce((a, b) => a + b, 0) / visibleFats.length;
+      }
+      
+      let fSpan = steps * 0.5; // 体重と同じ幅
+      let fMin = Math.floor((avgFat - (fSpan / 2)) * 2) / 2;
+      let fMax = fMin + fSpan;
+
       chartInstance.options.scales.yWeight.min = wMin;
       chartInstance.options.scales.yWeight.max = wMax;
-
-      // 体脂肪率：表示期間内のデータに基づきレンジを決定
-      let fMin = 20, fMax = 30;
-      if (visibleFats.length > 0) {
-        const minVal = Math.min(...visibleFats);
-        const maxVal = Math.max(...visibleFats);
-        fMin = Math.floor((minVal - 0.4) * 5) / 5;
-        fMax = Math.ceil((maxVal + 0.8) * 5) / 5;
-        if (fMin === fMax) { fMin -= 0.4; fMax += 0.4; }
-      } else if (fats.length > 0) {
-        const validAllF = fats.filter(f => typeof f === 'number' && !isNaN(f));
-        if (validAllF.length > 0) {
-          const lF = validAllF[validAllF.length - 1];
-          fMin = Math.floor((lF - 3) * 5) / 5;
-          fMax = Math.ceil((lF + 3) * 5) / 5;
-        }
-      }
       chartInstance.options.scales.yFat.min = fMin;
       chartInstance.options.scales.yFat.max = fMax;
 
       chartInstance.update();
 
-      // 固定目盛り＆背景グリッド線の連動描画
       renderFixedAxes(wMin, wMax, fMin, fMax, showWeight, showFat);
 
       const maxScrollLeft = container.scrollWidth - container.clientWidth;
@@ -3802,9 +3811,9 @@
         leftAxis.appendChild(span);
       }
 
-      // 体脂肪率：0.2刻み
+      // 体脂肪率：0.5刻み
       let fDiff = fMax - fMin;
-      let fSteps = Math.round(fDiff / 0.2);
+      let fSteps = Math.round(fDiff / 0.5);
       if (fSteps < 1) fSteps = 1;
       for (let i = fSteps; i >= 0; i--) {
         const val = (fMin + fDiff * (i / fSteps)).toFixed(1);
