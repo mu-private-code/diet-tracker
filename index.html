@@ -192,6 +192,8 @@
       border-radius: 6px;
       transition: all 0.15s;
       line-height: 1;
+      position: relative;
+      z-index: 2;
     }
 
     .date-nav-arrow:hover {
@@ -220,6 +222,7 @@
       display: inline-flex;
       align-items: center;
       margin-left: 2px;
+      z-index: 2;
     }
 
     .cal-picker-btn {
@@ -253,6 +256,7 @@
       height: 100%;
       opacity: 0;
       cursor: pointer;
+      z-index: 3;
     }
 
     input[type="number"],
@@ -1057,6 +1061,22 @@
       transform: scale(0.8);
     }
 
+    /* マスの端っこに表示するメモインジケーター（ドット） */
+    .cell-memo-indicator {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 6px;
+      height: 6px;
+      background-color: var(--accent);
+      border-radius: 50%;
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+    .cell-memo-indicator:hover {
+      transform: scale(1.3);
+    }
+
     .calendar-legend-card {
       margin-top: 14px;
       padding: 10px 12px;
@@ -1798,7 +1818,6 @@
 
         <div class="chart-info-bar">
           <span id="chartRangeDisplay">期間を表示中</span>
-          <!-- 左右の表記を外し、カラー丸と項目名のみのシンプルな注釈 -->
           <span style="font-size: 0.75rem; display: flex; align-items: center; gap: 8px;">
             <span style="display: inline-flex; align-items: center; gap: 3px;">
               <span style="width: 8px; height: 8px; border-radius: 50%; background-color: #9c826b; display: inline-block;"></span>
@@ -2186,13 +2205,6 @@
       'soso': faceIcons['ふつう'],
       'bad': faceIcons['なし']
     };
-
-    // モクモクマーク（メモ用アイコン）
-    const memoIconSvg = `
-      <svg viewBox="0 0 36 36" width="13" height="13">
-        <path d="M10 22 C6 22 4 19 4 16 C4 12 8 10 12 11 C14 7 19 6 22 9 C26 9 28 12 28 15 C31 16 32 20 30 22 Z" fill="#f5f2ed" stroke="#b3a89b" stroke-width="2"/>
-        <text x="18" y="19" font-size="11" font-weight="700" fill="#8c827a" text-anchor="middle" font-family="sans-serif">...</text>
-      </svg>`;
 
     window.addEventListener('DOMContentLoaded', () => {
       const today = formatDate(new Date());
@@ -3554,23 +3566,20 @@
           hasData = true;
         }
 
-        // メモがある場合のモクモクマーク
+        if (hasData) {
+          cell.appendChild(tagsRow);
+        }
+
+        // メモがある場合は端っこにインジケーターを配置し、タップでメモ内容のモーダルを表示（編集画面への遷移を防ぐ）
         if (rec && rec.memo && rec.memo.trim() !== '') {
-          const memoDiv = document.createElement('div');
-          memoDiv.className = 'cell-tag-item';
-          memoDiv.style.cursor = 'pointer';
-          memoDiv.title = rec.memo;
-          memoDiv.innerHTML = `${memoIconSvg}<span class="cell-tag-subtext">メモ</span>`;
-          memoDiv.addEventListener('click', (e) => {
+          const indicator = document.createElement('div');
+          indicator.className = 'cell-memo-indicator';
+          indicator.title = rec.memo;
+          indicator.addEventListener('click', (e) => {
             e.stopPropagation();
             openMemoModal(dateKey, rec.memo);
           });
-          tagsRow.appendChild(memoDiv);
-          hasData = true;
-        }
-
-        if (hasData) {
-          cell.appendChild(tagsRow);
+          cell.appendChild(indicator);
         }
 
         cell.addEventListener('click', () => {
