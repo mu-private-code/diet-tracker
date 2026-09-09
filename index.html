@@ -1022,6 +1022,14 @@
       font-weight: 600;
       color: var(--text-sub);
       line-height: 1;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+    
+    .cell-day.has-memo {
+      text-decoration: underline;
+      text-decoration-style: dotted;
+      text-underline-offset: 2px;
     }
 
     .cell-weight {
@@ -1070,11 +1078,6 @@
       height: 6px;
       background-color: var(--accent);
       border-radius: 50%;
-      cursor: pointer;
-      transition: transform 0.15s;
-    }
-    .cell-memo-indicator:hover {
-      transform: scale(1.3);
     }
 
     .calendar-legend-card {
@@ -3532,10 +3535,23 @@
 
         const rec = records.find(r => r.date === dateKey);
         const mealScore = mealScores[dateKey] || '';
+        const hasMemo = rec && rec.memo && rec.memo.trim() !== '';
 
         const daySpan = document.createElement('span');
         daySpan.className = 'cell-day';
+        if (hasMemo) {
+          daySpan.classList.add('has-memo');
+          daySpan.title = 'タップしてメモを表示';
+        }
         daySpan.textContent = d;
+
+        // メモがある場合、日付（数字部分）をタップするとメモモーダルが開くようにする
+        if (hasMemo) {
+          daySpan.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openMemoModal(dateKey, rec.memo);
+          });
+        }
         cell.appendChild(daySpan);
 
         if (rec && rec.weight !== null && rec.weight !== undefined) {
@@ -3570,8 +3586,8 @@
           cell.appendChild(tagsRow);
         }
 
-        // メモがある場合は端っこにインジケーターを配置し、タップでメモ内容のモーダルを表示（編集画面への遷移を防ぐ）
-        if (rec && rec.memo && rec.memo.trim() !== '') {
+        // メモがある場合は、インジケーター（ドット）をタップしてもメモが開くようにする
+        if (hasMemo) {
           const indicator = document.createElement('div');
           indicator.className = 'cell-memo-indicator';
           indicator.title = rec.memo;
@@ -3582,6 +3598,7 @@
           cell.appendChild(indicator);
         }
 
+        // マスの余白などをタップした場合は通常通り記録画面へ遷移
         cell.addEventListener('click', () => {
           if (rec) {
             startEdit(dateKey);
