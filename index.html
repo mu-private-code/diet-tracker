@@ -257,6 +257,7 @@
 
     input[type="number"],
     input[type="text"],
+    textarea,
     select {
       width: 100%;
       padding: 10px 12px;
@@ -269,7 +270,7 @@
       transition: border-color 0.2s;
     }
 
-    input:focus, select:focus {
+    input:focus, select:focus, textarea:focus {
       border-color: var(--accent);
     }
 
@@ -280,10 +281,6 @@
 
     .radio-options.cols-4 {
       grid-template-columns: repeat(4, 1fr);
-    }
-
-    .radio-options.cols-3 {
-      grid-template-columns: repeat(3, 1fr);
     }
 
     .radio-label {
@@ -667,7 +664,7 @@
       padding: 6px 0;
     }
 
-    /* モーダル */
+    /* モーダル共通 */
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -1143,7 +1140,7 @@
       border-color: var(--accent);
     }
 
-    /* 固定目盛り＋スクロールステージ（余白を極限まで削る） */
+    /* 固定目盛り＋スクロールステージ（余白最小化） */
     .chart-stage-container {
       position: relative;
       display: flex;
@@ -1164,14 +1161,14 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding: 4px 1px 24px 1px; /* 左右の余白をほぼゼロに */
-      font-size: 9px; /* 文字サイズをさらに小さく */
+      padding: 4px 1px 24px 1px;
+      font-size: 9px;
       user-select: none;
       pointer-events: none;
     }
 
     .chart-axis-left {
-      width: 26px; /* スリム化 */
+      width: 24px;
       border-right: 1px solid #f0ebe1;
       text-align: right;
       color: #9c826b;
@@ -1179,7 +1176,7 @@
     }
 
     .chart-axis-right {
-      width: 25px; /* スリム化 */
+      width: 24px;
       border-left: 1px solid #f0ebe1;
       text-align: left;
       color: #c48b71;
@@ -1202,7 +1199,7 @@
 
     .chart-info-bar {
       display: flex;
-      justify-content: flex-end;
+      justify-content: space-between;
       align-items: center;
       font-size: 0.8rem;
       color: var(--text-sub);
@@ -1484,6 +1481,12 @@
                   未記録
                 </label>
               </div>
+            </div>
+
+            <!-- メモ入力欄 -->
+            <div class="form-group full">
+              <label for="memo">メモ</label>
+              <textarea id="memo" rows="2" placeholder="今日の体調や食事のひとことメモ..."></textarea>
             </div>
 
           </div>
@@ -1777,9 +1780,9 @@
           </div>
         </div>
 
-        <!-- 固定目盛り＋スクロールステージ（背景グリッド線対応） -->
+        <!-- 固定目盛り＋スクロールステージ -->
         <div class="chart-stage-container">
-          <!-- 左側固定：体重目盛り (0.5刻み) -->
+          <!-- 左側固定：体重目盛り -->
           <div class="chart-axis-left" id="fixedYWeightAxis"></div>
 
           <!-- 中央：スクロール領域 -->
@@ -1789,14 +1792,39 @@
             </div>
           </div>
 
-          <!-- 右側固定：体脂肪率目盛り (0.5刻み) -->
+          <!-- 右側固定：体脂肪率目盛り -->
           <div class="chart-axis-right" id="fixedYFatAxis"></div>
         </div>
 
         <div class="chart-info-bar">
           <span id="chartRangeDisplay">期間を表示中</span>
+          <!-- 左右の表記を外し、カラー丸と項目名のみのシンプルな注釈 -->
+          <span style="font-size: 0.75rem; display: flex; align-items: center; gap: 8px;">
+            <span style="display: inline-flex; align-items: center; gap: 3px;">
+              <span style="width: 8px; height: 8px; border-radius: 50%; background-color: #9c826b; display: inline-block;"></span>
+              <span>体重 (kg)</span>
+            </span>
+            <span>/</span>
+            <span style="display: inline-flex; align-items: center; gap: 3px;">
+              <span style="width: 8px; height: 8px; border-radius: 50%; background-color: #c48b71; display: inline-block;"></span>
+              <span>体脂肪率 (%)</span>
+            </span>
+          </span>
         </div>
       </section>
+    </div>
+  </div>
+
+  <!-- メモ閲覧モーダル -->
+  <div class="modal-overlay" id="memoModal">
+    <div class="modal-container" style="max-width: 360px;">
+      <div class="modal-header">
+        <h3 id="memoModalTitle">2026/09/08 のメモ</h3>
+        <button type="button" class="modal-close-btn" onclick="closeMemoModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="memoModalContent" style="font-size: 0.9rem; line-height: 1.6; white-space: pre-wrap; color: var(--text-main); background: #faf8f5; padding: 12px; border-radius: 8px; border: 1px solid var(--border);"></div>
+      </div>
     </div>
   </div>
 
@@ -2159,6 +2187,13 @@
       'bad': faceIcons['なし']
     };
 
+    // モクモクマーク（メモ用アイコン）
+    const memoIconSvg = `
+      <svg viewBox="0 0 36 36" width="13" height="13">
+        <path d="M10 22 C6 22 4 19 4 16 C4 12 8 10 12 11 C14 7 19 6 22 9 C26 9 28 12 28 15 C31 16 32 20 30 22 Z" fill="#f5f2ed" stroke="#b3a89b" stroke-width="2"/>
+        <text x="18" y="19" font-size="11" font-weight="700" fill="#8c827a" text-anchor="middle" font-family="sans-serif">...</text>
+      </svg>`;
+
     window.addEventListener('DOMContentLoaded', () => {
       const today = formatDate(new Date());
 
@@ -2316,12 +2351,14 @@
       if (rec) {
         document.getElementById('weight').value = (rec.weight !== null && rec.weight !== undefined) ? rec.weight : '';
         document.getElementById('fat').value = (rec.fat !== null && rec.fat !== undefined) ? rec.fat : '';
+        document.getElementById('memo').value = rec.memo || '';
         const bowelVal = rec.bowel || '未記録';
         const radio = document.querySelector(`input[name="bowel"][value="${bowelVal}"]`);
         if (radio) radio.checked = true;
       } else {
         document.getElementById('weight').value = '';
         document.getElementById('fat').value = '';
+        document.getElementById('memo').value = '';
         const defaultRadio = document.querySelector('input[name="bowel"][value="未記録"]');
         if (defaultRadio) defaultRadio.checked = true;
       }
@@ -2607,12 +2644,13 @@
       const fatInput = document.getElementById('fat').value;
       const fat = fatInput !== '' ? parseFloat(fatInput) : null;
       const bowel = document.querySelector('input[name="bowel"]:checked').value;
+      const memo = document.getElementById('memo').value.trim();
 
       const existingIndex = records.findIndex(r => r.date === date);
-      const entry = { date, weight, fat, bowel, id: Date.now() };
+      const entry = { date, weight, fat, bowel, memo, id: Date.now() };
 
       if (existingIndex > -1) {
-        records[existingIndex] = entry;
+        records[existingIndex] = { ...records[existingIndex], weight, fat, bowel, memo };
       } else {
         records.push(entry);
       }
@@ -2631,6 +2669,7 @@
       setDateValue('date', rec.date);
       document.getElementById('weight').value = (rec.weight !== null && rec.weight !== undefined) ? rec.weight : '';
       document.getElementById('fat').value = (rec.fat !== null && rec.fat !== undefined) ? rec.fat : '';
+      document.getElementById('memo').value = rec.memo || '';
 
       const bowelVal = rec.bowel || '未記録';
       const radio = document.querySelector(`input[name="bowel"][value="${bowelVal}"]`);
@@ -2651,6 +2690,7 @@
 
       document.getElementById('weight').value = '';
       document.getElementById('fat').value = '';
+      document.getElementById('memo').value = '';
       const defaultRadio = document.querySelector('input[name="bowel"][value="未記録"]');
       if (defaultRadio) defaultRadio.checked = true;
 
@@ -2670,6 +2710,16 @@
       renderCalendar();
       renderList();
       updateChart();
+    }
+
+    function openMemoModal(dateStr, memoText) {
+      document.getElementById('memoModalTitle').textContent = `${dateStr.replace(/-/g, '/')} のメモ`;
+      document.getElementById('memoModalContent').textContent = memoText;
+      document.getElementById('memoModal').classList.add('open');
+    }
+
+    function closeMemoModal() {
+      document.getElementById('memoModal').classList.remove('open');
     }
 
     function renderMealSlots() {
@@ -3504,6 +3554,21 @@
           hasData = true;
         }
 
+        // メモがある場合のモクモクマーク
+        if (rec && rec.memo && rec.memo.trim() !== '') {
+          const memoDiv = document.createElement('div');
+          memoDiv.className = 'cell-tag-item';
+          memoDiv.style.cursor = 'pointer';
+          memoDiv.title = rec.memo;
+          memoDiv.innerHTML = `${memoIconSvg}<span class="cell-tag-subtext">メモ</span>`;
+          memoDiv.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openMemoModal(dateKey, rec.memo);
+          });
+          tagsRow.appendChild(memoDiv);
+          hasData = true;
+        }
+
         if (hasData) {
           cell.appendChild(tagsRow);
         }
@@ -3562,22 +3627,26 @@
         const weekdayInfo = getWeekdayInfo(record.date);
         const weightDisplay = (record.weight !== null && record.weight !== undefined) ? `<strong>${record.weight} kg</strong>` : '<span style="color:var(--text-sub);">未計測</span>';
         const fatDisplay = (record.fat !== null && record.fat !== undefined) ? record.fat + '%' : '-';
+        const memoSnippet = record.memo ? `<div style="font-size:0.75rem; color:var(--text-sub); margin-top:2px;">メモ: ${escapeHtml(record.memo)}</div>` : '';
 
         const li = document.createElement('li');
         li.className = 'history-item';
         li.innerHTML = `
-          <div class="history-data">
-            <span class="history-date">${record.date.slice(5)} <span style="font-size:0.75rem;" class="${weekdayInfo.cls}">${weekdayInfo.text}</span></span>
-            ${weightDisplay}
-            <span style="color: var(--text-sub); font-size: 0.8rem;">
-              ${fatDisplay}
-            </span>
-            <div class="history-icons">
-              ${bowelIconHtml}
-              ${scoreIconHtml}
+          <div style="flex:1;">
+            <div class="history-data">
+              <span class="history-date">${record.date.slice(5)} <span style="font-size:0.75rem;" class="${weekdayInfo.cls}">${weekdayInfo.text}</span></span>
+              ${weightDisplay}
+              <span style="color: var(--text-sub); font-size: 0.8rem;">
+                ${fatDisplay}
+              </span>
+              <div class="history-icons">
+                ${bowelIconHtml}
+                ${scoreIconHtml}
+              </div>
             </div>
+            ${memoSnippet}
           </div>
-          <div class="history-actions">
+          <div class="history-actions" style="display:flex; gap:4px;">
             <button class="btn-action btn-edit" onclick="startEdit('${record.date}')">編集</button>
             <button class="btn-action btn-delete" onclick="deleteRecord(${record.id})">削除</button>
           </div>
@@ -3651,7 +3720,17 @@
                 boxHeight: 10,
                 font: { size: 11, family: '-apple-system, sans-serif' },
                 color: '#4a4036',
-                padding: 10
+                padding: 10,
+                generateLabels: (chart) => {
+                  return chart.data.datasets.map((dataset, i) => ({
+                    text: dataset.label,
+                    fillStyle: dataset.borderColor,
+                    strokeStyle: dataset.borderColor,
+                    lineWidth: 2,
+                    hidden: !chart.isDatasetVisible(i),
+                    datasetIndex: i
+                  }));
+                }
               }
             }
           },
