@@ -772,7 +772,17 @@
       border: 1px solid var(--border);
       border-radius: 8px;
       background: #fff;
-      transition: all 0.15s;
+      transition: background 0.15s, border-color 0.15s;
+      cursor: grab;
+    }
+
+    .food-search-item:active {
+      cursor: grabbing;
+    }
+
+    .food-search-item.dragging {
+      opacity: 0.4;
+      background: var(--accent-light);
     }
 
     .food-search-item:hover {
@@ -1871,11 +1881,29 @@
 
           <div class="food-portion-calc" id="portionCalcArea">
             <div style="font-size:0.85rem; font-weight:600; color:var(--text-main); margin-bottom:6px;" id="selectedFoodName">白米</div>
-            <div style="display:flex; align-items:center; gap:8px;">
-              <label style="font-size:0.8rem;">分量:</label>
-              <input type="number" id="portionGrams" value="100" min="1" max="1000" step="1" style="width:90px; padding:6px 8px;">
-              <span style="font-size:0.8rem; color:var(--text-sub);" id="portionUnitLabel">g</span>
+            
+            <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:8px;" id="portionInputContainer">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <label style="font-size:0.8rem; width:55px;" id="portionLabelText">分量:</label>
+                <input type="number" id="portionGrams" value="100" min="1" max="1000" step="1" style="width:90px; padding:6px 8px;">
+                <span style="font-size:0.8rem; color:var(--text-sub);" id="portionUnitLabel">g</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:8px;" id="percentRowContainer">
+                <label style="font-size:0.8rem; width:55px;">割合:</label>
+                <input type="number" id="portionPercent" value="100" min="1" max="500" step="1" style="width:90px; padding:6px 8px;">
+                <span style="font-size:0.8rem; color:var(--text-sub);">%</span>
+              </div>
             </div>
+
+            <!-- パーセンテージプリセットボタン -->
+            <div style="display:flex; gap:4px; margin-bottom:8px;" id="percentPresetButtons">
+              <button type="button" class="btn-chip" onclick="setPortionPercent(50)" style="flex:1; padding:3px 0; font-size:0.72rem;">50%</button>
+              <button type="button" class="btn-chip" onclick="setPortionPercent(70)" style="flex:1; padding:3px 0; font-size:0.72rem;">70%</button>
+              <button type="button" class="btn-chip" onclick="setPortionPercent(80)" style="flex:1; padding:3px 0; font-size:0.72rem;">80%</button>
+              <button type="button" class="btn-chip" onclick="setPortionPercent(90)" style="flex:1; padding:3px 0; font-size:0.72rem;">90%</button>
+              <button type="button" class="btn-chip active" onclick="setPortionPercent(100)" style="flex:1; padding:3px 0; font-size:0.72rem;">100%</button>
+            </div>
+
             <div style="font-size:0.75rem; color:var(--text-sub); margin-top:6px;" id="calcResultPreview"></div>
             <button type="button" class="btn-primary" style="margin-top:10px; padding:8px;" onclick="addCalculatedFoodToSlot()">この食材を追加</button>
           </div>
@@ -1883,18 +1911,20 @@
           <details style="margin-top: 10px; border: 1px dashed var(--border); border-radius: 8px; padding: 10px; background: #faf8f5;" id="newCustomFoodDetails">
             <summary style="font-size: 0.8rem; color: var(--accent); cursor: pointer; font-weight: 600;" id="customFoodFormSummary">+ 一般食材リストに新しく追加する</summary>
             <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">
-              <div style="font-size: 0.72rem; color: var(--text-sub);">※100gまたは1個あたりの基準値を入力してください</div>
-              <input type="text" id="newFoodMaker" placeholder="メーカー名 / ブランド (例: 明治、タカノフーズ...)">
-              <input type="text" id="newFoodName" placeholder="商品名 (例: 特製ハンバーグ...)">
-              <input type="text" id="newFoodKana" placeholder="ひらがな検索用 (例: とくせいはいんばーぐ)">
+              <div style="font-size: 0.72rem; color: var(--text-sub);">※ 登録・編集時の設定に応じて入力してください</div>
+              <input type="text" id="newFoodMaker" placeholder="メーカー名 / ブランド (例: 明治、シマダヤ...)">
+              <input type="text" id="newFoodName" placeholder="商品名 (例: そば180g、納豆...)">
+              <input type="text" id="newFoodKana" placeholder="ひらがな検索用 (例: そば)">
               
               <div style="display: flex; align-items: center; gap: 8px;">
                 <label style="font-size:0.8rem;">単位・計算方式:</label>
                 <select id="newFoodUnitType" style="padding: 4px 8px; font-size: 0.8rem;">
-                  <option value="gram">g単位 (100gあたりで入力)</option>
-                  <option value="piece">個・パック単位 (1個/1パックあたりで入力)</option>
+                  <option value="gram">g単位（100g基準）</option>
+                  <option value="custom_gram">g単位（1パック等の基準量を設定）</option>
+                  <option value="piece">個・パック単位 (1個/1パックあたり)</option>
                 </select>
               </div>
+              <input type="number" id="newFoodDefaultAmount" placeholder="基準の分量 (例: 180 ※g単位カスタム選択時)" style="display:none;">
               <input type="text" id="newFoodCustomUnitName" placeholder="単位名 (例: 個、パック、枚 ※個・パック単位選択時)" style="display:none;">
 
               <div class="dropzone-area" id="customFoodDropzone">
@@ -2093,8 +2123,9 @@
     const STORAGE_KEY = 'simple_diet_records';
     const MEAL_STORAGE_KEY = 'simple_diet_meals';
     const PRESET_STORAGE_KEY = 'simple_diet_presets_unified';
-    const CUSTOM_FOODS_KEY = 'simple_diet_custom_foods_v6';
+    const CUSTOM_FOODS_KEY = 'simple_diet_custom_foods_v7';
     const OVERRIDDEN_DEFAULTS_KEY = 'simple_diet_overridden_defaults_v1';
+    const FOOD_ORDER_KEY = 'simple_diet_food_order_v1';
     const MEAL_SCORES_KEY = 'simple_diet_meal_scores_v1';
     const USER_CONFIG_KEY = 'simple_diet_user_config';
 
@@ -2133,7 +2164,8 @@
       { id: 'def_15', name: 'ギリシャヨーグルト パルテノ クリーミーバニラ', maker: '森永乳業', kana: 'ぎりしゃよ-ぐると ぱるての くり-み-ばにら', kcal: 114, p: 10.0, f: 4.2, c: 9.1, unit: '個', defaultAmount: 1, isTotalValue: true, image: '', isDefault: true },
       { id: 'def_16', name: 'MILK PROTEIN ヨーグルト 脂肪0 ピーチ', maker: 'ザバス', kana: 'ざばす みるくぷろていん よ-ぐると しぼうぜろ ぴ-ち', kcal: 90, p: 15.0, f: 0.0, c: 7.7, unit: '個', defaultAmount: 1, isTotalValue: true, image: '', isDefault: true },
       { id: 'def_17', name: 'MILK PROTEIN ヨーグルト 脂肪0 マンゴー', maker: 'ザバス', kana: 'ざばす みるくぷろていん よ-ぐると しぼうぜろ まんご-', kcal: 90, p: 15.0, f: 0.0, c: 7.7, unit: '個', defaultAmount: 1, isTotalValue: true, image: '', isDefault: true },
-      { id: 'def_18', name: '生卵', maker: '', kana: 'なまたまご たまご', kcal: 76, p: 6.2, f: 5.2, c: 0.2, unit: '個', defaultAmount: 1, isTotalValue: true, image: '', isDefault: true }
+      { id: 'def_18', name: '生卵', maker: '', kana: 'なまたまご たまご', kcal: 76, p: 6.2, f: 5.2, c: 0.2, unit: '個', defaultAmount: 1, isTotalValue: true, image: '', isDefault: true },
+      { id: 'def_19', name: 'シマダヤ そば180g', maker: 'シマダヤ', kana: 'しまだや そば', kcal: 369, p: 12.6, f: 2.5, c: 73.8, unit: 'g', defaultAmount: 180, isTotalValue: true, image: '', isDefault: true }
     ];
 
     let overriddenDefaults = JSON.parse(localStorage.getItem(OVERRIDDEN_DEFAULTS_KEY)) || {};
@@ -2146,7 +2178,24 @@
         }
         return item;
       });
-      return [...mergedDefaults, ...customFoods];
+      const combined = [...mergedDefaults, ...customFoods];
+      
+      let savedOrder = localStorage.getItem(FOOD_ORDER_KEY);
+      if (savedOrder) {
+        try {
+          let orderIds = JSON.parse(savedOrder);
+          if (Array.isArray(orderIds)) {
+            combined.sort((a, b) => {
+              let idxA = orderIds.indexOf(a.id);
+              let idxB = orderIds.indexOf(b.id);
+              if (idxA === -1) idxA = 9999;
+              if (idxB === -1) idxB = 9999;
+              return idxA - idxB;
+            });
+          }
+        } catch(e) {}
+      }
+      return combined;
     }
 
     let userConfig = JSON.parse(localStorage.getItem(USER_CONFIG_KEY)) || {
@@ -2175,6 +2224,14 @@
     let uploadedCustomImageBase64 = '';
     let editingFoodId = null;
     let editingIsDefault = false;
+
+    // ハプティックフィードバック用ヘルパー
+    let lastVibrateIndex = -1;
+    function triggerHaptic() {
+      if (navigator.vibrate) {
+        navigator.vibrate(10);
+      }
+    }
 
     const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
 
@@ -2236,10 +2293,17 @@
 
       document.getElementById('newFoodUnitType').addEventListener('change', (e) => {
         const val = e.target.value;
+        const defaultAmtInput = document.getElementById('newFoodDefaultAmount');
         const customUnitInput = document.getElementById('newFoodCustomUnitName');
-        if (val === 'piece') {
+        
+        if (val === 'custom_gram') {
+          defaultAmtInput.style.display = 'block';
+          customUnitInput.style.display = 'none';
+        } else if (val === 'piece') {
+          defaultAmtInput.style.display = 'none';
           customUnitInput.style.display = 'block';
         } else {
+          defaultAmtInput.style.display = 'none';
           customUnitInput.style.display = 'none';
         }
       });
@@ -2536,27 +2600,37 @@
         const item = document.createElement('div');
         item.className = 'preset-item-modal';
         item.draggable = true;
-        item.dataset.index = index;
+        item.dataset.id = preset.id;
 
         item.addEventListener('dragstart', (e) => {
-          e.dataTransfer.setData('text/plain', index);
+          e.dataTransfer.setData('text/plain', preset.id);
           item.classList.add('dragging');
+          lastVibrateIndex = index;
         });
         item.addEventListener('dragend', () => {
           item.classList.remove('dragging');
+          lastVibrateIndex = -1;
         });
         item.addEventListener('dragover', (e) => {
           e.preventDefault();
+          if (index !== lastVibrateIndex) {
+            triggerHaptic();
+            lastVibrateIndex = index;
+          }
         });
         item.addEventListener('drop', (e) => {
           e.preventDefault();
-          const fromIdx = parseInt(e.dataTransfer.getData('text/plain'), 10);
-          const toIdx = index;
-          if (fromIdx !== toIdx) {
-            const moved = presets.splice(fromIdx, 1)[0];
-            presets.splice(toIdx, 0, moved);
-            localStorage.setItem(PRESET_STORAGE_KEY, JSON.stringify(presets));
-            renderSettingsPresets();
+          const draggedId = Number(e.dataTransfer.getData('text/plain'));
+          const targetId = preset.id;
+          if (draggedId !== targetId) {
+            const fromIdx = presets.findIndex(p => p.id === draggedId);
+            const toIdx = presets.findIndex(p => p.id === targetId);
+            if (fromIdx !== -1 && toIdx !== -1) {
+              const moved = presets.splice(fromIdx, 1)[0];
+              presets.splice(toIdx, 0, moved);
+              localStorage.setItem(PRESET_STORAGE_KEY, JSON.stringify(presets));
+              renderSettingsPresets();
+            }
           }
         });
 
@@ -2907,9 +2981,24 @@
         renderModalPresets(e.target.value.trim());
       });
 
-      document.getElementById('portionGrams').addEventListener('input', (e) => {
-        updatePortionPreview(parseFloat(e.target.value) || 0);
+      document.getElementById('portionGrams').addEventListener('input', () => {
+        updatePortionPreview();
       });
+
+      document.getElementById('portionPercent').addEventListener('input', () => {
+        updatePortionPreview();
+      });
+    }
+
+    function setPortionPercent(pct) {
+      document.getElementById('portionPercent').value = pct;
+      document.querySelectorAll('#percentPresetButtons .btn-chip').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.textContent.includes(pct + '%')) {
+          btn.classList.add('active');
+        }
+      });
+      updatePortionPreview();
     }
 
     function renderSearchResults(keyword) {
@@ -2928,18 +3017,51 @@
         return;
       }
 
-      results.forEach(food => {
+      results.forEach((food, index) => {
         const li = document.createElement('li');
         li.className = 'food-search-item';
+        li.draggable = true;
+        li.dataset.id = food.id;
+
+        li.addEventListener('dragstart', (e) => {
+          e.dataTransfer.setData('text/plain', food.id);
+          li.classList.add('dragging');
+          lastVibrateIndex = index;
+        });
+        li.addEventListener('dragend', () => {
+          li.classList.remove('dragging');
+          lastVibrateIndex = -1;
+        });
+        li.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          if (index !== lastVibrateIndex) {
+            triggerHaptic();
+            lastVibrateIndex = index;
+          }
+        });
+        li.addEventListener('drop', (e) => {
+          e.preventDefault();
+          const draggedId = e.dataTransfer.getData('text/plain');
+          const targetId = food.id;
+          if (draggedId !== targetId) {
+            reorderCustomFoods(draggedId, targetId);
+          }
+        });
         
         const makerHtml = food.maker ? `<span class="food-maker">${escapeHtml(food.maker)}</span>` : '';
         const thumbHtml = food.image 
           ? `<img src="${food.image}" class="food-thumb" alt="">`
           : `<div class="food-thumb">🍽️</div>`;
 
-        const baseUnitLabel = food.isTotalValue ? `1${food.unit || '個'}` : '100g';
+        let baseUnitLabel = '100g';
+        if (food.isTotalValue) {
+          baseUnitLabel = `1${food.unit || '個'}`;
+        } else if (food.defaultAmount && food.defaultAmount !== 100) {
+          baseUnitLabel = `1回(${food.defaultAmount}g)`;
+        }
 
         li.innerHTML = `
+          <div style="color:#b3a89b; font-size:1.1rem; cursor:grab; padding:0 4px; user-select:none;" title="ドラッグして並び替え">☰</div>
           <div class="food-search-item-clickable" onclick="selectFoodFromListItem('${food.id}', this)">
             ${thumbHtml}
             <div class="food-info">
@@ -2955,6 +3077,21 @@
         `;
         list.appendChild(li);
       });
+    }
+
+    function reorderCustomFoods(draggedId, targetId) {
+      const allFoods = getAllCommonFoods();
+      const draggedIdx = allFoods.findIndex(f => f.id === draggedId);
+      const targetIdx = allFoods.findIndex(f => f.id === targetId);
+      if (draggedIdx === -1 || targetIdx === -1) return;
+
+      const [movedItem] = allFoods.splice(draggedIdx, 1);
+      allFoods.splice(targetIdx, 0, movedItem);
+
+      const orderIds = allFoods.map(f => f.id);
+      localStorage.setItem(FOOD_ORDER_KEY, JSON.stringify(orderIds));
+
+      renderSearchResults(document.getElementById('foodSearchInput').value.trim());
     }
 
     function selectFoodFromListItem(foodId, clickableEl) {
@@ -2976,45 +3113,82 @@
       const defaultAmt = food.defaultAmount || (unit === 'g' ? 100 : 1);
       
       document.getElementById('portionGrams').value = defaultAmt;
+      document.getElementById('portionPercent').value = 100;
       document.getElementById('portionUnitLabel').textContent = unit;
-      updatePortionPreview(defaultAmt);
+
+      const percentRow = document.getElementById('percentRowContainer');
+      const labelText = document.getElementById('portionLabelText');
+      const presetBtns = document.getElementById('percentPresetButtons');
+
+      if (food.isTotalValue) {
+        labelText.textContent = '個数:';
+        percentRow.style.display = 'none';
+        presetBtns.style.display = 'none';
+      } else {
+        labelText.textContent = '分量:';
+        percentRow.style.display = 'flex';
+        presetBtns.style.display = 'flex';
+      }
+
+      setPortionPercent(100);
+      updatePortionPreview();
     }
 
-    function updatePortionPreview(amount) {
+    function updatePortionPreview() {
       if (!selectedFoodItem) return;
       
+      const amount = parseFloat(document.getElementById('portionGrams').value) || 0;
+      const percent = parseFloat(document.getElementById('portionPercent').value) || 100;
+      const unit = selectedFoodItem.unit || 'g';
+
+      let multiplier = amount;
+      if (!selectedFoodItem.isTotalValue) {
+        multiplier = amount * (percent / 100);
+      }
+
       let kcal, p, f, c;
       if (selectedFoodItem.isTotalValue) {
-        const ratio = amount; 
+        const ratio = multiplier; 
         kcal = Math.round(selectedFoodItem.kcal * ratio);
         p = (selectedFoodItem.p * ratio).toFixed(1);
         f = (selectedFoodItem.f * ratio).toFixed(1);
         c = (selectedFoodItem.c * ratio).toFixed(1);
       } else {
-        const ratio = amount / 100;
+        const ratio = multiplier / 100;
         kcal = Math.round(selectedFoodItem.kcal * ratio);
         p = (selectedFoodItem.p * ratio).toFixed(1);
         f = (selectedFoodItem.f * ratio).toFixed(1);
         c = (selectedFoodItem.c * ratio).toFixed(1);
       }
 
-      document.getElementById('calcResultPreview').textContent = 
-        `${kcal} kcal / P: ${p}g  F: ${f}g  C: ${c}g`;
+      let previewText = '';
+      if (selectedFoodItem.isTotalValue) {
+        previewText = `${multiplier} ${unit} ⇒ ${kcal} kcal / P: ${p}g  F: ${f}g  C: ${c}g`;
+      } else {
+        previewText = `実質 ${Math.round(multiplier * 10) / 10}${unit} (${percent}%) ⇒ ${kcal} kcal / P: ${p}g  F: ${f}g  C: ${c}g`;
+      }
+      document.getElementById('calcResultPreview').textContent = previewText;
     }
 
     function addCalculatedFoodToSlot() {
       if (!selectedFoodItem) return;
       const amount = parseFloat(document.getElementById('portionGrams').value) || 100;
+      const percent = parseFloat(document.getElementById('portionPercent').value) || 100;
       const unit = selectedFoodItem.unit || 'g';
+
+      let multiplier = amount;
+      if (!selectedFoodItem.isTotalValue) {
+        multiplier = amount * (percent / 100);
+      }
 
       let kcal, p, f, c;
       if (selectedFoodItem.isTotalValue) {
-        kcal = Math.round(selectedFoodItem.kcal * amount);
-        p = parseFloat((selectedFoodItem.p * amount).toFixed(1));
-        f = parseFloat((selectedFoodItem.f * amount).toFixed(1));
-        c = parseFloat((selectedFoodItem.c * amount).toFixed(1));
+        kcal = Math.round(selectedFoodItem.kcal * multiplier);
+        p = parseFloat((selectedFoodItem.p * multiplier).toFixed(1));
+        f = parseFloat((selectedFoodItem.f * multiplier).toFixed(1));
+        c = parseFloat((selectedFoodItem.c * multiplier).toFixed(1));
       } else {
-        const ratio = amount / 100;
+        const ratio = multiplier / 100;
         kcal = Math.round(selectedFoodItem.kcal * ratio);
         p = parseFloat((selectedFoodItem.p * ratio).toFixed(1));
         f = parseFloat((selectedFoodItem.f * ratio).toFixed(1));
@@ -3023,11 +3197,21 @@
 
       const date = document.getElementById('mealCurrentDate').value;
       const displayName = (selectedFoodItem.maker ? `${selectedFoodItem.maker} ` : '') + selectedFoodItem.name;
+      
+      let contentStr = '';
+      if (selectedFoodItem.isTotalValue) {
+        contentStr = `${displayName} ${amount}${unit}`;
+      } else {
+        contentStr = percent === 100 
+          ? `${displayName} ${amount}${unit}`
+          : `${displayName} ${amount}${unit}の${percent}% (${Math.round(multiplier*10)/10}${unit})`;
+      }
+
       const newMeal = {
         id: Date.now(),
         date,
         type: activeModalSlot,
-        content: `${displayName} ${amount}${unit}`,
+        content: contentStr,
         kcal,
         p,
         f,
@@ -3058,13 +3242,25 @@
       document.getElementById('newFoodC').value = food.c !== undefined ? food.c : '';
 
       const unitTypeSelect = document.getElementById('newFoodUnitType');
+      const defaultAmtInput = document.getElementById('newFoodDefaultAmount');
       const customUnitInput = document.getElementById('newFoodCustomUnitName');
+
       if (food.isTotalValue) {
         unitTypeSelect.value = 'piece';
+        defaultAmtInput.style.display = 'none';
+        defaultAmtInput.value = '';
         customUnitInput.style.display = 'block';
         customUnitInput.value = food.unit || '個';
+      } else if (food.defaultAmount && food.defaultAmount !== 100) {
+        unitTypeSelect.value = 'custom_gram';
+        defaultAmtInput.style.display = 'block';
+        defaultAmtInput.value = food.defaultAmount;
+        customUnitInput.style.display = 'none';
+        customUnitInput.value = '';
       } else {
         unitTypeSelect.value = 'gram';
+        defaultAmtInput.style.display = 'none';
+        defaultAmtInput.value = '';
         customUnitInput.style.display = 'none';
         customUnitInput.value = '';
       }
@@ -3093,6 +3289,8 @@
       document.getElementById('newFoodF').value = '';
       document.getElementById('newFoodC').value = '';
       document.getElementById('newFoodUnitType').value = 'gram';
+      document.getElementById('newFoodDefaultAmount').style.display = 'none';
+      document.getElementById('newFoodDefaultAmount').value = '';
       document.getElementById('newFoodCustomUnitName').style.display = 'none';
       document.getElementById('newFoodCustomUnitName').value = '';
       clearCustomDropzoneImage();
@@ -3116,9 +3314,23 @@
       const c = parseFloat(document.getElementById('newFoodC').value) || 0;
 
       const unitType = document.getElementById('newFoodUnitType').value;
-      const isTotalValue = (unitType === 'piece');
-      const unit = isTotalValue ? (document.getElementById('newFoodCustomUnitName').value.trim() || '個') : 'g';
-      const defaultAmount = isTotalValue ? 1 : 100;
+      let isTotalValue = false;
+      let unit = 'g';
+      let defaultAmount = 100;
+
+      if (unitType === 'piece') {
+        isTotalValue = true;
+        unit = document.getElementById('newFoodCustomUnitName').value.trim() || '個';
+        defaultAmount = 1;
+      } else if (unitType === 'custom_gram') {
+        isTotalValue = false;
+        unit = 'g';
+        defaultAmount = parseFloat(document.getElementById('newFoodDefaultAmount').value) || 100;
+      } else {
+        isTotalValue = false;
+        unit = 'g';
+        defaultAmount = 100;
+      }
 
       if (editingFoodId) {
         if (editingIsDefault) {
@@ -3354,9 +3566,43 @@
         return;
       }
 
-      filtered.forEach((preset) => {
+      filtered.forEach((preset, index) => {
         const item = document.createElement('div');
         item.className = 'preset-item-modal';
+        item.draggable = true;
+        item.dataset.id = preset.id;
+
+        item.addEventListener('dragstart', (e) => {
+          e.dataTransfer.setData('text/plain', preset.id);
+          item.classList.add('dragging');
+          lastVibrateIndex = index;
+        });
+        item.addEventListener('dragend', () => {
+          item.classList.remove('dragging');
+          lastVibrateIndex = -1;
+        });
+        item.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          if (index !== lastVibrateIndex) {
+            triggerHaptic();
+            lastVibrateIndex = index;
+          }
+        });
+        item.addEventListener('drop', (e) => {
+          e.preventDefault();
+          const draggedId = Number(e.dataTransfer.getData('text/plain'));
+          const targetId = preset.id;
+          if (draggedId !== targetId) {
+            const fromIdx = presets.findIndex(p => p.id === draggedId);
+            const toIdx = presets.findIndex(p => p.id === targetId);
+            if (fromIdx !== -1 && toIdx !== -1) {
+              const moved = presets.splice(fromIdx, 1)[0];
+              presets.splice(toIdx, 0, moved);
+              localStorage.setItem(PRESET_STORAGE_KEY, JSON.stringify(presets));
+              renderModalPresets(keyword);
+            }
+          }
+        });
 
         const imgHtml = preset.image
           ? `<img src="${preset.image}" class="preset-thumb" alt="">`
@@ -3371,6 +3617,7 @@
             </div>`;
 
         item.innerHTML = `
+          <div class="preset-drag-handle" title="ドラッグして並び替え">☰</div>
           <button type="button" class="preset-item-btn" onclick="applyPresetToSlot(${preset.id})">
             ${imgHtml}
             <div style="display:flex; flex-direction:column; gap:2px;">
@@ -3545,7 +3792,6 @@
         }
         daySpan.textContent = d;
 
-        // メモがある場合、日付（数字部分）をタップするとメモモーダルが開くようにする
         if (hasMemo) {
           daySpan.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -3586,7 +3832,6 @@
           cell.appendChild(tagsRow);
         }
 
-        // メモがある場合は、インジケーター（ドット）をタップしてもメモが開くようにする
         if (hasMemo) {
           const indicator = document.createElement('div');
           indicator.className = 'cell-memo-indicator';
@@ -3598,7 +3843,6 @@
           cell.appendChild(indicator);
         }
 
-        // マスの余白などをタップした場合は通常通り記録画面へ遷移
         cell.addEventListener('click', () => {
           if (rec) {
             startEdit(dateKey);
