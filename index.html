@@ -1377,7 +1377,7 @@
       <button type="button" class="btn-settings-trigger" id="btnOpenSettings" title="設定">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"/>
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09A1.65 1.65 0 0 0 19.4 15z"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09A1.65 1.65 0 0 0 19.4 15z"/>
         </svg>
       </button>
     </header>
@@ -2176,7 +2176,8 @@
       { id: 'def_15', name: 'ギリシャヨーグルト パルテノ クリーミーバニラ', maker: '森永乳業', kana: 'ぎりしゃよ-ぐると ぱるての くり-み-ばにら', kcal: 114, p: 10.0, f: 4.2, c: 9.1, unit: '個', defaultAmount: 1, isTotalValue: true, image: '', isDefault: true },
       { id: 'def_16', name: 'MILK PROTEIN ヨーグルト 脂肪0 ピーチ', maker: 'ザバス', kana: 'ざばす みるくぷろていん よ-ぐると しぼうぜろ ぴ-ち', kcal: 90, p: 15.0, f: 0.0, c: 7.7, unit: '個', defaultAmount: 1, isTotalValue: true, image: '', isDefault: true },
       { id: 'def_17', name: 'MILK PROTEIN ヨーグルト 脂肪0 マンゴー', maker: 'ザバス', kana: 'ざばす みるくぷろていん よ-ぐると しぼうぜろ まんご-', kcal: 90, p: 15.0, f: 0.0, c: 7.7, unit: '個', defaultAmount: 1, isTotalValue: true, image: '', isDefault: true },
-      { id: 'def_18', name: '生卵', maker: '', kana: 'なまたまご たまご', kcal: 76, p: 6.2, f: 5.2, c: 0.2, unit: '個', defaultAmount: 1, isTotalValue: true, image: '', isDefault: true }
+      { id: 'def_18', name: '生卵', maker: '', kana: 'なまたまご たまご', kcal: 76, p: 6.2, f: 5.2, c: 0.2, unit: '個', defaultAmount: 1, isTotalValue: true, image: '', isDefault: true },
+      { id: 'def_19', name: 'シマダヤ そば180g', maker: 'シマダヤ', kana: 'しまだや そば', kcal: 228, p: 7.8, f: 1.6, c: 45.5, unit: 'g', defaultAmount: 180, isTotalValue: false, image: '', isDefault: true }
     ];
 
     let overriddenDefaults = JSON.parse(localStorage.getItem(OVERRIDDEN_DEFAULTS_KEY)) || {};
@@ -2209,7 +2210,6 @@
       return combined;
     }
 
-    // 食材の基準分量（分母）を取得するヘルパー
     function getFoodBaseAmount(food) {
       if (food.unit === 'g') {
         return (food.defaultAmount && food.defaultAmount > 0) ? food.defaultAmount : 100;
@@ -2754,11 +2754,17 @@
       const memo = document.getElementById('memo').value.trim();
 
       const existingIndex = records.findIndex(r => r.date === date);
-      const entry = { date, weight, fat, bowel, memo, id: Date.now() };
-
+      
       if (existingIndex > -1) {
-        records[existingIndex] = { ...records[existingIndex], weight, fat, bowel, memo };
+        // 既存のデータがある場合は、未入力（空欄）の項目は既存の値を引き継ぐ
+        const prev = records[existingIndex];
+        const updatedWeight = (weight !== null) ? weight : prev.weight;
+        const updatedFat = (fat !== null) ? fat : prev.fat;
+        const updatedBowel = (bowel && bowel !== '未記録') ? bowel : (prev.bowel || '未記録');
+
+        records[existingIndex] = { ...prev, weight: updatedWeight, fat: updatedFat, bowel: updatedBowel, memo };
       } else {
+        const entry = { date, weight, fat, bowel, memo, id: Date.now() };
         records.push(entry);
       }
 
@@ -3138,7 +3144,6 @@
       const labelText = document.getElementById('portionLabelText');
       const presetBtns = document.getElementById('percentPresetButtons');
 
-      // グラム以外（個・パック単位）の場合は割合欄を隠し「個数:」のみ表示
       if (unit !== 'g') {
         labelText.textContent = '個数:';
         percentRow.style.display = 'none';
@@ -3166,7 +3171,6 @@
         multiplier = amount * (percent / 100);
       }
 
-      // 基準量（100gまたはカスタムg、個数なら1）で正しく割る
       const baseAmount = getFoodBaseAmount(selectedFoodItem);
       const ratio = multiplier / baseAmount;
 
