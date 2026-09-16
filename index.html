@@ -47,6 +47,13 @@
       justify-content: center;
     }
 
+    /* モーダル表示時に背景がスクロールしないようにするクラス */
+    body.modal-open {
+      overflow: hidden;
+      position: fixed;
+      width: 100%;
+    }
+
     .container {
       width: 100%;
       max-width: 580px;
@@ -693,7 +700,7 @@
       border-radius: var(--radius);
       width: 100%;
       max-width: 460px;
-      max-height: 90vh; /* 縦幅の制限を少し緩和 */
+      max-height: 90vh;
       display: flex;
       flex-direction: column;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
@@ -760,7 +767,7 @@
       display: flex;
       flex-direction: column;
       gap: 6px;
-      max-height: 380px; /* ここを大きくして縦幅を広げました */
+      max-height: 440px; /* さらに縦幅を大きく広げました */
       overflow-y: auto;
     }
 
@@ -1909,11 +1916,11 @@
         <button type="button" class="modal-close-btn" onclick="closeMealModal()">&times;</button>
       </div>
       
-      <!-- サブタブに「履歴」を追加 -->
+      <!-- サブタブ：食材、マイ定番、履歴（一番右） -->
       <div class="modal-subtabs">
         <button type="button" class="modal-subtab active" id="subtabSearchBtn" onclick="switchModalTab('search')">食材</button>
-        <button type="button" class="modal-subtab" id="subtabHistoryBtn" onclick="switchModalTab('history')">履歴</button>
         <button type="button" class="modal-subtab" id="subtabPresetBtn" onclick="switchModalTab('preset')">マイ定番</button>
+        <button type="button" class="modal-subtab" id="subtabHistoryBtn" onclick="switchModalTab('history')">履歴</button>
       </div>
 
       <div class="modal-body">
@@ -1994,13 +2001,7 @@
           </details>
         </div>
 
-        <!-- 2. 最近使った履歴 -->
-        <div id="modalViewHistory" style="display: none;">
-          <div style="font-size:0.78rem; color:var(--text-sub); margin-bottom:4px;">最近使った項目からワンタップで追加できます</div>
-          <ul class="history-list-modal" id="modalHistoryList"></ul>
-        </div>
-
-        <!-- 3. マイ定番 -->
+        <!-- 2. マイ定番 -->
         <div id="modalViewPreset" style="display: none;">
           <input type="text" id="presetSearchInput" placeholder="マイ定番を検索..." style="margin-bottom: 8px;">
           <div class="preset-list-modal" id="modalPresetList"></div>
@@ -2032,6 +2033,12 @@
               </div>
             </div>
           </details>
+        </div>
+
+        <!-- 3. 最近使った履歴 -->
+        <div id="modalViewHistory" style="display: none;">
+          <div style="font-size:0.78rem; color:var(--text-sub); margin-bottom:4px;">最近使った項目からワンタップで追加できます</div>
+          <ul class="history-list-modal" id="modalHistoryList"></ul>
         </div>
       </div>
     </div>
@@ -2120,7 +2127,7 @@
           </div>
 
           <div style="text-align: center; margin-top: 24px; font-size: 0.75rem; color: var(--text-sub);">
-            Version 1.2.2
+            Version 1.2.3
           </div>
         </div>
 
@@ -2462,9 +2469,11 @@
       msgEl.innerHTML = msgText;
       btnOk.textContent = okText;
       modal.classList.add('open');
+      document.body.classList.add('modal-open');
 
       const cleanup = () => {
         modal.classList.remove('open');
+        document.body.classList.remove('modal-open');
         btnOk.onclick = null;
         btnCancel.onclick = null;
       };
@@ -2688,6 +2697,7 @@
         document.getElementById('currentNameDisplay').textContent = userConfig.name ? `(${userConfig.name})` : '';
         switchSettingsView('main');
         document.getElementById('settingsModal').classList.add('open');
+        document.body.classList.add('modal-open');
       });
 
       const pfcModeSelect = document.getElementById('pfcInputMode');
@@ -2757,6 +2767,7 @@
       document.getElementById('settingsModal').classList.remove('open');
       document.getElementById('modalUserName').value = userConfig.name || '';
       document.getElementById('nameModal').classList.add('open');
+      document.body.classList.add('modal-open');
     }
 
     function closeNameModal() {
@@ -2956,6 +2967,7 @@
 
     function closeSettingsModal() {
       document.getElementById('settingsModal').classList.remove('open');
+      document.body.classList.remove('modal-open');
     }
 
     function applyUserConfigToUI() {
@@ -3054,10 +3066,12 @@
       document.getElementById('memoModalTitle').textContent = `${dateStr.replace(/-/g, '/')} のメモ`;
       document.getElementById('memoModalContent').textContent = memoText;
       document.getElementById('memoModal').classList.add('open');
+      document.body.classList.add('modal-open');
     }
 
     function closeMemoModal() {
       document.getElementById('memoModal').classList.remove('open');
+      document.body.classList.remove('modal-open');
     }
 
     function renderMealSlots() {
@@ -3185,6 +3199,7 @@
       activeModalSlot = slotName;
       document.getElementById('modalSlotTitle').textContent = `${slotName}の記録`;
       document.getElementById('mealModal').classList.add('open');
+      document.body.classList.add('modal-open');
 
       switchModalTab('search');
       document.getElementById('foodSearchInput').value = '';
@@ -3196,37 +3211,40 @@
 
     function closeMealModal() {
       document.getElementById('mealModal').classList.remove('open');
+      document.body.classList.remove('modal-open');
       cancelPresetEdit();
       cancelCustomFoodEdit();
     }
 
     function switchModalTab(tab) {
       const searchTabBtn = document.getElementById('subtabSearchBtn');
-      const historyTabBtn = document.getElementById('subtabHistoryBtn');
       const presetTabBtn = document.getElementById('subtabPresetBtn');
+      const historyTabBtn = document.getElementById('subtabHistoryBtn');
+      
       const viewSearch = document.getElementById('modalViewSearch');
-      const viewHistory = document.getElementById('modalViewHistory');
       const viewPreset = document.getElementById('modalViewPreset');
+      const viewHistory = document.getElementById('modalViewHistory');
 
       searchTabBtn.classList.remove('active');
-      historyTabBtn.classList.remove('active');
       presetTabBtn.classList.remove('active');
+      historyTabBtn.classList.remove('active');
+      
       viewSearch.style.display = 'none';
-      viewHistory.style.display = 'none';
       viewPreset.style.display = 'none';
+      viewHistory.style.display = 'none';
 
       if (tab === 'search') {
         searchTabBtn.classList.add('active');
         viewSearch.style.display = 'block';
-      } else if (tab === 'history') {
-        historyTabBtn.classList.add('active');
-        viewHistory.style.display = 'block';
-        renderModalHistory();
-      } else {
+      } else if (tab === 'preset') {
         presetTabBtn.classList.add('active');
         viewPreset.style.display = 'block';
         document.getElementById('presetSearchInput').value = '';
         renderModalPresets('');
+      } else if (tab === 'history') {
+        historyTabBtn.classList.add('active');
+        viewHistory.style.display = 'block';
+        renderModalHistory();
       }
     }
 
@@ -3239,7 +3257,6 @@
         return;
       }
 
-      // 重複を除いたユニークな最近使った項目を最大20件抽出
       const uniqueMap = new Map();
       const sortedMeals = [...meals].sort((a, b) => b.id - a.id);
       
