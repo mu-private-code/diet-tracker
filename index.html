@@ -265,7 +265,6 @@
       z-index: 3;
     }
 
-    /* スマホでの自動ズーム防止 */
     input[type="number"],
     input[type="text"],
     textarea,
@@ -675,7 +674,7 @@
       padding: 6px 0;
     }
 
-    /* モーダル共通 (Safariのツールバーを考慮した高さ制限) */
+    /* モーダル共通 (Safariの上下バーを考慮して高さを安全に制限) */
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -687,7 +686,7 @@
       align-items: center;
       justify-content: center;
       z-index: 1000;
-      padding: 16px;
+      padding: 12px;
     }
 
     .modal-overlay.open {
@@ -699,8 +698,8 @@
       border-radius: var(--radius);
       width: 100%;
       max-width: 460px;
-      max-height: 82vh; /* スマホブラウザの上下ツールバーで見切れない高さに最適化 */
-      max-height: calc(100svh - 40px); /* セーフエリア対応 */
+      max-height: 75vh;
+      max-height: calc(100svh - 100px);
       display: flex;
       flex-direction: column;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
@@ -708,11 +707,12 @@
     }
 
     .modal-header {
-      padding: 14px 18px 10px;
+      padding: 12px 16px 8px;
       border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-shrink: 0;
     }
 
     .modal-header h3 {
@@ -733,11 +733,12 @@
       display: flex;
       background: #f5f2eb;
       border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
     }
 
     .modal-subtab {
       flex: 1;
-      padding: 10px 0;
+      padding: 9px 0;
       text-align: center;
       font-size: 0.85rem;
       font-weight: 500;
@@ -755,11 +756,12 @@
     }
 
     .modal-body {
-      padding: 16px;
+      padding: 12px 16px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
+      flex: 1;
     }
 
     .food-search-list, .preset-list-modal, .history-list-modal {
@@ -767,7 +769,7 @@
       display: flex;
       flex-direction: column;
       gap: 6px;
-      max-height: 380px; /* ブラウザでも収まりの良いリストの最大高さに調整 */
+      max-height: 260px;
       overflow-y: auto;
     }
 
@@ -848,12 +850,16 @@
       color: var(--text-sub);
     }
 
+    /* 選択中の分量入力エリア（背景を白・枠線・影でしっかり分離） */
     .food-portion-calc {
-      background: #faf8f5;
-      padding: 12px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
+      background: #ffffff;
+      padding: 14px;
+      border-radius: 10px;
+      border: 2px solid var(--accent);
+      box-shadow: 0 4px 16px rgba(74, 64, 54, 0.12);
       display: none;
+      margin-top: 6px;
+      margin-bottom: 6px;
     }
 
     .preset-item-modal {
@@ -2111,14 +2117,14 @@
           <div class="settings-menu-list">
             <button type="button" class="settings-menu-btn" onclick="exportAppData()">
               <div class="settings-menu-btn-content">
-                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                 <span>データを書き出す（エクスポート）</span>
               </div>
               <span>＞</span>
             </button>
             <button type="button" class="settings-menu-btn" onclick="triggerImportAppData()">
               <div class="settings-menu-btn-content">
-                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 <span>データを読み込む（インポート）</span>
               </div>
               <span>＞</span>
@@ -2127,7 +2133,7 @@
           </div>
 
           <div style="text-align: center; margin-top: 24px; font-size: 0.75rem; color: var(--text-sub);">
-            Version 1.2.4
+            Version 1.2.5
           </div>
         </div>
 
@@ -2189,7 +2195,7 @@
             </div>
 
             <div id="pfcPercentHint" style="font-size: 0.72rem; color: var(--text-sub); margin-bottom: 16px; display: none;">
-              ※カロリーをベースに自動でgに換算されます（P:4kcal, F:9kcal, C:4kcal）
+              ※カロリーをベースに自動でgに換算されます
             </div>
 
             <button type="submit" class="btn-primary">目標を保存する</button>
@@ -2247,8 +2253,16 @@
 
     let presets = loadUserPresets();
 
+    // ご指定の並び順（白米、生卵、旨味ひきわり、シマダヤそば、パルテノ、ピーチ、マンゴー）
     const BASE_DEFAULT_FOODS = [
       { id: 'def_1', name: '白米 (ご飯)', maker: '', kana: 'はくまい ごはん', kcal: 156, p: 2.5, f: 0.3, c: 35.6, unit: 'g', defaultAmount: 100, isTotalValue: false, image: '', isDefault: true },
+      { id: 'def_18', name: '生卵', maker: '', kana: 'なまたまご たまご', kcal: 76, p: 6.2, f: 5.2, c: 0.2, unit: '個', defaultAmount: 1, isTotalValue: true, image: '', isDefault: true },
+      { id: 'def_14', name: '旨味ひきわりミニ1パック', maker: 'タカノフーズ', kana: 'うまみひきわりみにとっぷ', kcal: 97, p: 8.4, f: 5.0, c: 6.3, unit: 'パック', defaultAmount: 1, isTotalValue: true, image: '', isDefault: true },
+      { id: 'def_19', name: 'シマダヤ そば180g', maker: 'シマダヤ', kana: 'しまだや そば', kcal: 228, p: 7.8, f: 1.6, c: 45.5, unit: 'g', defaultAmount: 180, isTotalValue: false, image: '', isDefault: true },
+      { id: 'def_15', name: 'ギリシャヨーグルト パルテノ クリーミーバニラ', maker: '森永乳業', kana: 'ぎりしゃよ-ぐると ぱるての くり-み-ばにら', kcal: 114, p: 10.0, f: 4.2, c: 9.1, unit: '個', defaultAmount: 1, isTotalValue: true, image: '', isDefault: true },
+      { id: 'def_16', name: 'MILK PROTEIN ヨーグルト 脂肪0 ピーチ', maker: 'ザバス', kana: 'ざばす みるくぷろていん よ-ぐると しぼうぜろ ぴ-ち', kcal: 90, p: 15.0, f: 0.0, c: 7.7, unit: '個', defaultAmount: 1, isTotalValue: true, image: '', isDefault: true },
+      { id: 'def_17', name: 'MILK PROTEIN ヨーグルト 脂肪0 マンゴー', maker: 'ザバス', kana: 'ざばす みるくぷろていん よ-ぐると しぼうぜろ まんご-', kcal: 90, p: 15.0, f: 0.0, c: 7.7, unit: '個', defaultAmount: 1, isTotalValue: true, image: '', isDefault: true },
+      // その他のデフォルト食材
       { id: 'def_2', name: '玄米 (ご飯)', maker: '', kana: 'げんまい', kcal: 152, p: 2.8, f: 1.0, c: 34.2, unit: 'g', defaultAmount: 100, isTotalValue: false, image: '', isDefault: true },
       { id: 'def_3', name: '食パン', maker: '', kana: 'しょくぱん', kcal: 248, p: 8.9, f: 4.1, c: 44.4, unit: 'g', defaultAmount: 60, isTotalValue: false, image: '', isDefault: true },
       { id: 'def_4', name: 'オートミール', maker: '', kana: 'おーとみーる', kcal: 350, p: 13.7, f: 5.7, c: 69.1, unit: 'g', defaultAmount: 30, isTotalValue: false, image: '', isDefault: true },
@@ -2260,13 +2274,7 @@
       { id: 'def_10', name: '鮭 (焼き)', maker: '', kana: 'さけ しゃけ', kcal: 190, p: 28.0, f: 7.0, c: 0.1, unit: 'g', defaultAmount: 80, isTotalValue: false, image: '', isDefault: true },
       { id: 'def_11', name: 'ブロッコリー', maker: '', kana: 'ぶろっこりー', kcal: 37, p: 3.9, f: 0.4, c: 4.3, unit: 'g', defaultAmount: 70, isTotalValue: false, image: '', isDefault: true },
       { id: 'def_12', name: 'バナナ', maker: '', kana: 'ばなな', kcal: 93, p: 1.1, f: 0.2, c: 22.5, unit: 'g', defaultAmount: 100, isTotalValue: false, image: '', isDefault: true },
-      { id: 'def_13', name: '牛乳', maker: '', kana: 'ぎゅうにゅう', kcal: 61, p: 3.3, f: 3.8, c: 4.8, unit: 'ml', defaultAmount: 200, isTotalValue: false, image: '', isDefault: true },
-      { id: 'def_14', name: '旨味ひきわりミニ1パック', maker: 'タカノフーズ', kana: 'うまみひきわりみにとっぷ', kcal: 97, p: 8.4, f: 5.0, c: 6.3, unit: 'パック', defaultAmount: 1, isTotalValue: true, image: '', isDefault: true },
-      { id: 'def_15', name: 'ギリシャヨーグルト パルテノ クリーミーバニラ', maker: '森永乳業', kana: 'ぎりしゃよ-ぐると ぱるての くり-み-ばにら', kcal: 114, p: 10.0, f: 4.2, c: 9.1, unit: '個', defaultAmount: 1, isTotalValue: true, image: '', isDefault: true },
-      { id: 'def_16', name: 'MILK PROTEIN ヨーグルト 脂肪0 ピーチ', maker: 'ザバス', kana: 'ざばす みるくぷろていん よ-ぐると しぼうぜろ ぴ-ち', kcal: 90, p: 15.0, f: 0.0, c: 7.7, unit: '個', defaultAmount: 1, isTotalValue: true, image: '', isDefault: true },
-      { id: 'def_17', name: 'MILK PROTEIN ヨーグルト 脂肪0 マンゴー', maker: 'ザバス', kana: 'ざばす みるくぷろていん よ-ぐると しぼうぜろ まんご-', kcal: 90, p: 15.0, f: 0.0, c: 7.7, unit: '個', defaultAmount: 1, isTotalValue: true, image: '', isDefault: true },
-      { id: 'def_18', name: '生卵', maker: '', kana: 'なまたまご たまご', kcal: 76, p: 6.2, f: 5.2, c: 0.2, unit: '個', defaultAmount: 1, isTotalValue: true, image: '', isDefault: true },
-      { id: 'def_19', name: 'シマダヤ そば180g', maker: 'シマダヤ', kana: 'しまだや そば', kcal: 228, p: 7.8, f: 1.6, c: 45.5, unit: 'g', defaultAmount: 180, isTotalValue: false, image: '', isDefault: true }
+      { id: 'def_13', name: '牛乳', maker: '', kana: 'ぎゅうにゅう', kcal: 61, p: 3.3, f: 3.8, c: 4.8, unit: 'ml', defaultAmount: 200, isTotalValue: false, image: '', isDefault: true }
     ];
 
     let overriddenDefaults = JSON.parse(localStorage.getItem(OVERRIDDEN_DEFAULTS_KEY)) || {};
