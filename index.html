@@ -674,7 +674,7 @@
       padding: 6px 0;
     }
 
-    /* モーダル共通 (Safariの上下バーを考慮して高さを安全に制限) */
+    /* モーダル共通 (Safariの上下バーを考慮した高さ制限) */
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -698,8 +698,8 @@
       border-radius: var(--radius);
       width: 100%;
       max-width: 460px;
-      max-height: 75vh;
-      max-height: calc(100svh - 100px);
+      max-height: 85vh; /* 縦幅を広げて6個以上表示できるように拡大 */
+      max-height: calc(100svh - 60px);
       display: flex;
       flex-direction: column;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
@@ -764,12 +764,13 @@
       flex: 1;
     }
 
+    /* リスト部分の縦幅を広げ、6個以上表示できるように調整 */
     .food-search-list, .preset-list-modal, .history-list-modal {
       list-style: none;
       display: flex;
       flex-direction: column;
       gap: 6px;
-      max-height: 260px;
+      max-height: 385px; 
       overflow-y: auto;
     }
 
@@ -850,7 +851,7 @@
       color: var(--text-sub);
     }
 
-    /* 選択中の分量入力エリア（背景を白・枠線・影でしっかり分離） */
+    /* 選択中の分量入力エリア */
     .food-portion-calc {
       background: #ffffff;
       padding: 14px;
@@ -4198,7 +4199,6 @@
           const touch = e.changedTouches[0];
           const moveX = Math.abs(touch.clientX - touchStartX);
           const moveY = Math.abs(touch.clientY - touchStartY);
-          // ズーム（ピンチ）やスクロール等のブレが少ない（5px以内）場合のみタップとみなす
           if (moveX < 5 && moveY < 5) {
             triggerCellClick(dateKey, rec);
           }
