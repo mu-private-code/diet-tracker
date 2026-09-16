@@ -2253,7 +2253,6 @@
 
     let presets = loadUserPresets();
 
-    // ご指定の並び順（白米、生卵、旨味ひきわり、シマダヤそば、パルテノ、ピーチ、マンゴー）
     const BASE_DEFAULT_FOODS = [
       { id: 'def_1', name: '白米 (ご飯)', maker: '', kana: 'はくまい ごはん', kcal: 156, p: 2.5, f: 0.3, c: 35.6, unit: 'g', defaultAmount: 100, isTotalValue: false, image: '', isDefault: true },
       { id: 'def_18', name: '生卵', maker: '', kana: 'なまたまご たまご', kcal: 76, p: 6.2, f: 5.2, c: 0.2, unit: '個', defaultAmount: 1, isTotalValue: true, image: '', isDefault: true },
@@ -4181,41 +4180,56 @@
           cell.appendChild(indicator);
         }
 
-        let pressTimer = null;
-        let isLongPress = false;
+        let touchStartX = 0;
+        let touchStartY = 0;
 
-        const handleTouchOrMouseDown = () => {
-          isLongPress = false;
-          pressTimer = setTimeout(() => {
-            isLongPress = true;
-            if (hasMemo) {
-              triggerHaptic();
-              openMemoModal(dateKey, rec.memo);
-            }
-          }, 600);
+        const handleTouchStart = (e) => {
+          const touch = e.touches[0];
+          touchStartX = touch.clientX;
+          touchStartY = touch.clientY;
         };
 
-        const handleTouchOrMouseUp = (e) => {
-          if (pressTimer) clearTimeout(pressTimer);
-          if (!isLongPress) {
-            const executeCellClick = () => {
-              startEdit(dateKey);
-            };
+        const handleMouseDown = (e) => {
+          touchStartX = e.clientX;
+          touchStartY = e.clientY;
+        };
 
-            if (document.querySelector('.tab-btn[data-tab="tab-form"]').classList.contains('active') && isFormDirty()) {
-              showCustomConfirm("入力内容が保存されていません。<br>このまま移動しますか？", "移動する", executeCellClick);
-            } else {
-              executeCellClick();
-            }
+        const handleTouchEnd = (e) => {
+          const touch = e.changedTouches[0];
+          const moveX = Math.abs(touch.clientX - touchStartX);
+          const moveY = Math.abs(touch.clientY - touchStartY);
+          // ズーム（ピンチ）やスクロール等のブレが少ない（5px以内）場合のみタップとみなす
+          if (moveX < 5 && moveY < 5) {
+            triggerCellClick(dateKey, rec);
           }
         };
 
-        cell.addEventListener('mousedown', handleTouchOrMouseDown);
-        cell.addEventListener('mouseup', handleTouchOrMouseUp);
-        cell.addEventListener('touchstart', handleTouchOrMouseDown, {passive: true});
-        cell.addEventListener('touchend', handleTouchOrMouseUp);
+        const handleMouseUp = (e) => {
+          const moveX = Math.abs(e.clientX - touchStartX);
+          const moveY = Math.abs(e.clientY - touchStartY);
+          if (moveX < 5 && moveY < 5) {
+            triggerCellClick(dateKey, rec);
+          }
+        };
+
+        cell.addEventListener('touchstart', handleTouchStart, {passive: true});
+        cell.addEventListener('touchend', handleTouchEnd);
+        cell.addEventListener('mousedown', handleMouseDown);
+        cell.addEventListener('mouseup', handleMouseUp);
 
         grid.appendChild(cell);
+      }
+    }
+
+    function triggerCellClick(dateKey, rec) {
+      const executeCellClick = () => {
+        startEdit(dateKey);
+      };
+
+      if (document.querySelector('.tab-btn[data-tab="tab-form"]').classList.contains('active') && isFormDirty()) {
+        showCustomConfirm("入力内容が保存されていません。<br>このまま移動しますか？", "移動する", executeCellClick);
+      } else {
+        executeCellClick();
       }
     }
 
