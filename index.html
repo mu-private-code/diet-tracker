@@ -1319,7 +1319,8 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
-      margin-top: 12px;
+      margin-top: 6px;
+      margin-bottom: 16px;
     }
 
     .settings-menu-btn {
@@ -1367,6 +1368,46 @@
       align-items: center;
       gap: 4px;
       margin-bottom: 12px;
+    }
+
+    /* カスタム確認モーダル */
+    .custom-confirm-box {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 320px;
+      padding: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .custom-confirm-msg {
+      font-size: 0.92rem;
+      color: var(--text-main);
+      line-height: 1.5;
+    }
+    .custom-confirm-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .custom-confirm-actions button {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+    }
+    .btn-confirm-cancel {
+      background: #eee8df;
+      color: var(--text-main);
+    }
+    .btn-confirm-ok {
+      background: var(--accent);
+      color: #fff;
     }
   </style>
 </head>
@@ -1882,12 +1923,12 @@
       </div>
       
       <div class="modal-subtabs">
-        <button type="button" class="modal-subtab active" id="subtabSearchBtn" onclick="switchModalTab('search')">一般食材</button>
+        <button type="button" class="modal-subtab active" id="subtabSearchBtn" onclick="switchModalTab('search')">食材</button>
         <button type="button" class="modal-subtab" id="subtabPresetBtn" onclick="switchModalTab('preset')">マイ定番</button>
       </div>
 
       <div class="modal-body">
-        <!-- 1. 一般食材検索 -->
+        <!-- 1. 食材検索 -->
         <div id="modalViewSearch">
           <input type="text" id="foodSearchInput" placeholder="食材名 (例: パルテノ、納豆、卵、白米...)" style="margin-bottom: 8px;">
           <ul class="food-search-list" id="foodSearchResults"></ul>
@@ -1922,7 +1963,7 @@
           </div>
 
           <details style="margin-top: 10px; border: 1px dashed var(--border); border-radius: 8px; padding: 10px; background: #faf8f5;" id="newCustomFoodDetails">
-            <summary style="font-size: 0.8rem; color: var(--accent); cursor: pointer; font-weight: 600;" id="customFoodFormSummary">+ 一般食材リストに新しく追加する</summary>
+            <summary style="font-size: 0.8rem; color: var(--accent); cursor: pointer; font-weight: 600;" id="customFoodFormSummary">+ 食材リストに新しく追加する</summary>
             <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">
               <div style="font-size: 0.72rem; color: var(--text-sub);">※ 登録・編集時の設定に応じて入力してください</div>
               <input type="text" id="newFoodMaker" placeholder="メーカー名 / ブランド (例: 明治、シマダヤ...)">
@@ -2011,12 +2052,13 @@
       <div class="modal-body" id="settingsModalBody">
         <!-- トップメニュー -->
         <div id="settingsViewMain">
-          <div class="form-group" style="margin-bottom: 12px;">
+          <div class="form-group" style="margin-bottom: 16px;">
             <label for="settingUserName">お名前・ニックネーム</label>
             <input type="text" id="settingUserName" placeholder="あなたのお名前" onblur="autoSaveUserName()">
           </div>
 
-          <div style="font-size:0.82rem; font-weight:600; color:var(--text-sub); margin-bottom: 4px;">メニュー</div>
+          <!-- カテゴリ1: 基本設定 -->
+          <div style="font-size:0.82rem; font-weight:600; color:var(--text-sub); margin-bottom: 4px;">基本設定</div>
           <div class="settings-menu-list">
             <button type="button" class="settings-menu-btn" onclick="switchSettingsView('target')">
               <div class="settings-menu-btn-content">
@@ -2032,18 +2074,31 @@
               </div>
               <span>＞</span>
             </button>
+          </div>
+
+          <!-- カテゴリ2: データ管理 -->
+          <div style="font-size:0.82rem; font-weight:600; color:var(--text-sub); margin-bottom: 4px;">データ</div>
+          <div class="settings-menu-list">
             <button type="button" class="settings-menu-btn" onclick="exportAppData()">
               <div class="settings-menu-btn-content">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                <span>データをバックアップ（JSON出力）</span>
+                <span>データを書き出す（エクスポート）</span>
               </div>
               <span>＞</span>
             </button>
+            <button type="button" class="settings-menu-btn" onclick="triggerImportAppData()">
+              <div class="settings-menu-btn-content">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <span>データを読み込む（インポート）</span>
+              </div>
+              <span>＞</span>
+            </button>
+            <input type="file" id="importFileinput" accept=".json" style="display:none;" onchange="importAppData(event)">
           </div>
 
           <!-- バージョン情報（設定画面の一番下） -->
           <div style="text-align: center; margin-top: 24px; font-size: 0.75rem; color: var(--text-sub);">
-            Version 1.1.0
+            Version 1.2.0
           </div>
         </div>
 
@@ -2133,6 +2188,17 @@
           <div class="preset-list-modal" id="settingsPresetListContainer" style="max-height: 260px;"></div>
         </div>
 
+      </div>
+    </div>
+  </div>
+
+  <!-- カスタム確認ダイアログモーダル -->
+  <div class="modal-overlay" id="customConfirmModal">
+    <div class="custom-confirm-box">
+      <div class="custom-confirm-msg" id="customConfirmMsg">入力内容が保存されていません。<br>このまま移動しますか？</div>
+      <div class="custom-confirm-actions">
+        <button type="button" class="btn-confirm-cancel" id="btnConfirmCancel">キャンセル</button>
+        <button type="button" class="btn-confirm-ok" id="btnConfirmOk">移動する</button>
       </div>
     </div>
   </div>
@@ -2361,6 +2427,43 @@
       return { text: `(${WEEKDAYS[dayIdx]})`, cls };
     }
 
+    // フォームに入力中かどうかを判定するヘルパー
+    function isFormDirty() {
+      const weight = document.getElementById('weight').value.trim();
+      const fat = document.getElementById('fat').value.trim();
+      const memo = document.getElementById('memo').value.trim();
+      const bowel = document.querySelector('input[name="bowel"]:checked').value;
+      const mealScore = document.querySelector('input[name="mealScore_form"]:checked').value;
+      return weight !== '' || fat !== '' || memo !== '' || bowel !== '未記録' || mealScore !== '';
+    }
+
+    // カスタム確認ダイアログを表示する関数
+    function showCustomConfirm(msgText, okText, onConfirm) {
+      const modal = document.getElementById('customConfirmModal');
+      const msgEl = document.getElementById('customConfirmMsg');
+      const btnOk = document.getElementById('btnConfirmOk');
+      const btnCancel = document.getElementById('btnConfirmCancel');
+
+      msgEl.innerHTML = msgText;
+      btnOk.textContent = okText;
+      modal.classList.add('open');
+
+      const cleanup = () => {
+        modal.classList.remove('open');
+        btnOk.onclick = null;
+        btnCancel.onclick = null;
+      };
+
+      btnOk.onclick = () => {
+        cleanup();
+        onConfirm();
+      };
+
+      btnCancel.onclick = () => {
+        cleanup();
+      };
+    }
+
     function setupDateNavigator(inputId, textDisplayId, weekdayDisplayId, prevBtnId, nextBtnId, onChangeCallback) {
       const input = document.getElementById(inputId);
       const textDisplay = document.getElementById(textDisplayId);
@@ -2368,7 +2471,16 @@
       const prevBtn = document.getElementById(prevBtnId);
       const nextBtn = document.getElementById(nextBtnId);
 
-      function refreshUI() {
+      function refreshUI(targetVal) {
+        input.value = targetVal;
+        textDisplay.textContent = targetVal.replace(/-/g, '/');
+        const info = getWeekdayInfo(targetVal);
+        weekdayDisplay.textContent = info.text;
+        weekdayDisplay.className = 'weekday-text ' + info.cls;
+        if (onChangeCallback) onChangeCallback(targetVal);
+      }
+
+      input.addEventListener('change', () => {
         const val = input.value;
         if (!val) return;
         textDisplay.textContent = val.replace(/-/g, '/');
@@ -2376,23 +2488,25 @@
         weekdayDisplay.textContent = info.text;
         weekdayDisplay.className = 'weekday-text ' + info.cls;
         if (onChangeCallback) onChangeCallback(val);
-      }
-
-      input.addEventListener('change', refreshUI);
-
-      prevBtn.addEventListener('click', () => {
-        const d = new Date((input.value || formatDate(new Date())) + 'T00:00:00');
-        d.setDate(d.getDate() - 1);
-        input.value = formatDate(d);
-        refreshUI();
       });
 
-      nextBtn.addEventListener('click', () => {
+      const handleStep = (direction) => {
         const d = new Date((input.value || formatDate(new Date())) + 'T00:00:00');
-        d.setDate(d.getDate() + 1);
-        input.value = formatDate(d);
-        refreshUI();
-      });
+        d.setDate(d.getDate() + direction);
+        const nextVal = formatDate(d);
+
+        // 体重記録タブのときだけ、未保存データがあれば確認を挟む
+        if (inputId === 'date' && isFormDirty()) {
+          showCustomConfirm("入力内容が保存されていません。<br>このまま移動しますか？", "移動する", () => {
+            refreshUI(nextVal);
+          });
+        } else {
+          refreshUI(nextVal);
+        }
+      };
+
+      prevBtn.addEventListener('click', () => handleStep(-1));
+      nextBtn.addEventListener('click', () => handleStep(1));
     }
 
     function setDateValue(inputId, dateStr) {
@@ -2471,16 +2585,29 @@
       const tabBtns = document.querySelectorAll('.tab-btn');
       tabBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-          tabBtns.forEach(b => b.classList.remove('active'));
-          document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+          const targetTabId = btn.dataset.tab;
+          const currentActiveBtn = document.querySelector('.tab-btn.active');
+          if (currentActiveBtn && currentActiveBtn.dataset.tab === targetTabId) return;
 
-          btn.classList.add('active');
-          const target = document.getElementById(btn.dataset.tab);
-          if (target) target.classList.add('active');
+          const executeTabSwitch = () => {
+            tabBtns.forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
 
-          if (btn.dataset.tab === 'tab-chart' && chartInstance) {
-            chartInstance.resize();
-            updateChart();
+            btn.classList.add('active');
+            const target = document.getElementById(targetTabId);
+            if (target) target.classList.add('active');
+
+            if (targetTabId === 'tab-chart' && chartInstance) {
+              chartInstance.resize();
+              updateChart();
+            }
+          };
+
+          // 記録タブから別のタブに移動しようとしたとき未保存があれば確認
+          if (currentActiveBtn && currentActiveBtn.dataset.tab === 'tab-form' && targetTabId !== 'tab-form' && isFormDirty()) {
+            showCustomConfirm("入力内容が保存されていません。<br>このまま移動しますか？", "移動する", executeTabSwitch);
+          } else {
+            executeTabSwitch();
           }
         });
       });
@@ -2730,8 +2857,66 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `diet_tracker_backup_${formatDate(new Date())}.json`;
+      a.download = `diet_tracker_export_${formatDate(new Date())}.json`;
       a.click();
+    }
+
+    function triggerImportAppData() {
+      document.getElementById('importFileinput').click();
+    }
+
+    function importAppData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      showCustomConfirm("現在のデータが読み込んだデータに置き換わります。<br>よろしいですか？", "インポートする", () => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          try {
+            const imported = JSON.parse(e.target.result);
+            if (imported.records) {
+              records = imported.records;
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+            }
+            if (imported.meals) {
+              meals = imported.meals;
+              localStorage.setItem(MEAL_STORAGE_KEY, JSON.stringify(meals));
+            }
+            if (imported.mealScores) {
+              mealScores = imported.mealScores;
+              localStorage.setItem(MEAL_SCORES_KEY, JSON.stringify(mealScores));
+            }
+            if (imported.presets) {
+              presets = imported.presets;
+              localStorage.setItem(PRESET_STORAGE_KEY, JSON.stringify(presets));
+            }
+            if (imported.customFoods) {
+              customFoods = imported.customFoods;
+              localStorage.setItem(CUSTOM_FOODS_KEY, JSON.stringify(customFoods));
+            }
+            if (imported.overriddenDefaults) {
+              overriddenDefaults = imported.overriddenDefaults;
+              localStorage.setItem(OVERRIDDEN_DEFAULTS_KEY, JSON.stringify(overriddenDefaults));
+            }
+            if (imported.userConfig) {
+              userConfig = imported.userConfig;
+              localStorage.setItem(USER_CONFIG_KEY, JSON.stringify(userConfig));
+            }
+
+            applyUserConfigToUI();
+            renderCalendar();
+            renderList();
+            renderMealSlots();
+            updateChart();
+            closeSettingsModal();
+            alert('データの読み込みが完了しました！');
+          } catch (err) {
+            alert('ファイルの読み込みに失敗しました。正しいJSONファイルかご確認ください。');
+          }
+        };
+        reader.readAsText(file);
+      });
+      event.target.value = '';
     }
 
     function closeSettingsModal() {
@@ -2762,7 +2947,6 @@
       const existingIndex = records.findIndex(r => r.date === date);
       
       if (existingIndex > -1) {
-        // 既存のデータがある場合は、未入力（空欄）の項目は既存の値を引き継ぐ
         const prev = records[existingIndex];
         const updatedWeight = (weight !== null) ? weight : prev.weight;
         const updatedFat = (fat !== null) ? fat : prev.fat;
@@ -2782,25 +2966,33 @@
     });
 
     function startEdit(dateKey) {
-      const rec = records.find(r => r.date === dateKey);
-      if (!rec) return;
+      const executeEdit = () => {
+        const rec = records.find(r => r.date === dateKey);
+        if (!rec) return;
 
-      setDateValue('date', rec.date);
-      document.getElementById('weight').value = (rec.weight !== null && rec.weight !== undefined) ? rec.weight : '';
-      document.getElementById('fat').value = (rec.fat !== null && rec.fat !== undefined) ? rec.fat : '';
-      document.getElementById('memo').value = rec.memo || '';
+        setDateValue('date', rec.date);
+        document.getElementById('weight').value = (rec.weight !== null && rec.weight !== undefined) ? rec.weight : '';
+        document.getElementById('fat').value = (rec.fat !== null && rec.fat !== undefined) ? rec.fat : '';
+        document.getElementById('memo').value = rec.memo || '';
 
-      const bowelVal = rec.bowel || '未記録';
-      const radio = document.querySelector(`input[name="bowel"][value="${bowelVal}"]`);
-      if (radio) radio.checked = true;
+        const bowelVal = rec.bowel || '未記録';
+        const radio = document.querySelector(`input[name="bowel"][value="${bowelVal}"]`);
+        if (radio) radio.checked = true;
 
-      const weekdayInfo = getWeekdayInfo(rec.date);
-      document.getElementById('formTitle').textContent = `${rec.date} ${weekdayInfo.text} の記録を編集`;
-      document.getElementById('btnSubmit').textContent = '更新する';
-      document.getElementById('btnCancel').style.display = 'block';
+        const weekdayInfo = getWeekdayInfo(rec.date);
+        document.getElementById('formTitle').textContent = `${rec.date} ${weekdayInfo.text} の記録を編集`;
+        document.getElementById('btnSubmit').textContent = '更新する';
+        document.getElementById('btnCancel').style.display = 'block';
 
-      document.querySelector('.tab-btn[data-tab="tab-form"]').click();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+        document.querySelector('.tab-btn[data-tab="tab-form"]').click();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      };
+
+      if (document.querySelector('.tab-btn[data-tab="tab-form"]').classList.contains('active') && isFormDirty()) {
+        showCustomConfirm("入力内容が保存されていません。<br>このまま移動しますか？", "移動する", executeEdit);
+      } else {
+        executeEdit();
+      }
     }
 
     function resetFormState() {
@@ -3291,7 +3483,7 @@
         clearCustomDropzoneImage();
       }
 
-      document.getElementById('customFoodFormSummary').textContent = '一般食材を編集中';
+      document.getElementById('customFoodFormSummary').textContent = '食材を編集中';
       document.getElementById('btnSaveCustomFood').textContent = '更新する';
       document.getElementById('btnCancelCustomFoodEdit').style.display = 'block';
       document.getElementById('newCustomFoodDetails').open = true;
@@ -3314,7 +3506,7 @@
       document.getElementById('newFoodCustomUnitName').value = '';
       clearCustomDropzoneImage();
 
-      document.getElementById('customFoodFormSummary').textContent = '+ 一般食材リストに新しく追加する';
+      document.getElementById('customFoodFormSummary').textContent = '+ 食材リストに新しく追加する';
       document.getElementById('btnSaveCustomFood').textContent = '食材リストに登録';
       document.getElementById('btnCancelCustomFoodEdit').style.display = 'none';
     }
@@ -3412,7 +3604,7 @@
       const allFoods = getAllCommonFoods();
       const food = allFoods.find(f => f.id === foodId);
       if (!food) return;
-      if (!confirm(`一般食材「${food.name}」を削除しますか？`)) return;
+      if (!confirm(`食材「${food.name}」を削除しますか？`)) return;
 
       customFoods = customFoods.filter(f => f.id !== foodId);
       localStorage.setItem(CUSTOM_FOODS_KEY, JSON.stringify(customFoods));
@@ -3863,12 +4055,20 @@
         }
 
         cell.addEventListener('click', () => {
-          if (rec) {
-            startEdit(dateKey);
+          const executeCellClick = () => {
+            if (rec) {
+              startEdit(dateKey);
+            } else {
+              resetFormState();
+              setDateValue('date', dateKey);
+              document.querySelector('.tab-btn[data-tab="tab-form"]').click();
+            }
+          };
+
+          if (document.querySelector('.tab-btn[data-tab="tab-form"]').classList.contains('active') && isFormDirty()) {
+            showCustomConfirm("入力内容が保存されていません。<br>このまま移動しますか？", "移動する", executeCellClick);
           } else {
-            resetFormState();
-            setDateValue('date', dateKey);
-            document.querySelector('.tab-btn[data-tab="tab-form"]').click();
+            executeCellClick();
           }
         });
 
