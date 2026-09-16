@@ -674,7 +674,7 @@
       padding: 6px 0;
     }
 
-    /* モーダル共通 (Safariの上下バーを考慮した高さ制限) */
+    /* モーダル共通 (Safariの上下バーを考慮して高さを安全に制限) */
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -698,7 +698,7 @@
       border-radius: var(--radius);
       width: 100%;
       max-width: 460px;
-      max-height: 85vh; /* 縦幅を広げて6個以上表示できるように拡大 */
+      max-height: 85vh;
       max-height: calc(100svh - 60px);
       display: flex;
       flex-direction: column;
@@ -764,13 +764,12 @@
       flex: 1;
     }
 
-    /* リスト部分の縦幅を広げ、6個以上表示できるように調整 */
     .food-search-list, .preset-list-modal, .history-list-modal {
       list-style: none;
       display: flex;
       flex-direction: column;
       gap: 6px;
-      max-height: 385px; 
+      max-height: 380px; 
       overflow-y: auto;
     }
 
@@ -851,7 +850,6 @@
       color: var(--text-sub);
     }
 
-    /* 選択中の分量入力エリア */
     .food-portion-calc {
       background: #ffffff;
       padding: 14px;
@@ -1923,11 +1921,12 @@
         <button type="button" class="modal-close-btn" onclick="closeMealModal()">&times;</button>
       </div>
       
-      <!-- サブタブ：食材、マイ定番、履歴（一番右） -->
+      <!-- サブタブ：食材、マイ定番、履歴、AI一括 -->
       <div class="modal-subtabs">
         <button type="button" class="modal-subtab active" id="subtabSearchBtn" onclick="switchModalTab('search')">食材</button>
         <button type="button" class="modal-subtab" id="subtabPresetBtn" onclick="switchModalTab('preset')">マイ定番</button>
         <button type="button" class="modal-subtab" id="subtabHistoryBtn" onclick="switchModalTab('history')">履歴</button>
+        <button type="button" class="modal-subtab" id="subtabAiBtn" onclick="switchModalTab('ai')">✨AI一括</button>
       </div>
 
       <div class="modal-body">
@@ -2047,6 +2046,21 @@
           <div style="font-size:0.78rem; color:var(--text-sub); margin-bottom:4px;">最近使った項目からワンタップで追加できます</div>
           <ul class="history-list-modal" id="modalHistoryList"></ul>
         </div>
+
+        <!-- 4. AI一括インポート -->
+        <div id="modalViewAi" style="display: none;">
+          <div style="font-size:0.8rem; font-weight:600; color:var(--text-main); margin-bottom:4px;">AIの回答をここに貼り付け</div>
+          <div style="font-size:0.72rem; color:var(--text-sub); margin-bottom:6px;">AIに生成してもらった以下のJSONテキストをそのままペーストしてください。</div>
+          
+          <!-- 常時見える入力例の表示ボックス -->
+          <div style="background: var(--card-sub); border: 1px solid var(--border); border-radius: 6px; padding: 8px; font-size: 0.72rem; font-family: monospace; color: var(--text-main); margin-bottom: 8px; user-select: all; word-break: break-all;">
+            入力例:<br>
+            {"content": "白米 150g", "kcal": 234, "p": 3.8, "f": 0.5, "c": 53.4}
+          </div>
+
+          <textarea id="aiJsonInput" rows="5" placeholder="ここにAIの回答を貼り付け..." style="font-size:0.82rem; font-family:monospace; margin-bottom:10px;"></textarea>
+          <button type="button" class="btn-primary" onclick="importAiMealJsonToSlot()">この内容を<span id="aiTargetSlotName">朝食</span>に追加する</button>
+        </div>
       </div>
     </div>
   </div>
@@ -2134,7 +2148,7 @@
           </div>
 
           <div style="text-align: center; margin-top: 24px; font-size: 0.75rem; color: var(--text-sub);">
-            Version 1.2.5
+            Version 1.2.6
           </div>
         </div>
 
@@ -3217,6 +3231,7 @@
     function openMealModal(slotName) {
       activeModalSlot = slotName;
       document.getElementById('modalSlotTitle').textContent = `${slotName}の記録`;
+      document.getElementById('aiTargetSlotName').textContent = slotName;
       document.getElementById('mealModal').classList.add('open');
       document.body.classList.add('modal-open');
 
@@ -3239,18 +3254,22 @@
       const searchTabBtn = document.getElementById('subtabSearchBtn');
       const presetTabBtn = document.getElementById('subtabPresetBtn');
       const historyTabBtn = document.getElementById('subtabHistoryBtn');
+      const aiTabBtn = document.getElementById('subtabAiBtn');
       
       const viewSearch = document.getElementById('modalViewSearch');
       const viewPreset = document.getElementById('modalViewPreset');
       const viewHistory = document.getElementById('modalViewHistory');
+      const viewAi = document.getElementById('modalViewAi');
 
       searchTabBtn.classList.remove('active');
       presetTabBtn.classList.remove('active');
       historyTabBtn.classList.remove('active');
+      if (aiTabBtn) aiTabBtn.classList.remove('active');
       
       viewSearch.style.display = 'none';
       viewPreset.style.display = 'none';
       viewHistory.style.display = 'none';
+      if (viewAi) viewAi.style.display = 'none';
 
       if (tab === 'search') {
         searchTabBtn.classList.add('active');
@@ -3264,6 +3283,9 @@
         historyTabBtn.classList.add('active');
         viewHistory.style.display = 'block';
         renderModalHistory();
+      } else if (tab === 'ai') {
+        if (aiTabBtn) aiTabBtn.classList.add('active');
+        if (viewAi) viewAi.style.display = 'block';
       }
     }
 
@@ -3334,6 +3356,51 @@
       localStorage.setItem(MEAL_STORAGE_KEY, JSON.stringify(meals));
       renderMealSlots();
       closeMealModal();
+    }
+
+    function importAiMealJsonToSlot() {
+      const text = document.getElementById('aiJsonInput').value.trim();
+      if (!text) {
+        alert('JSONテキストを入力してください');
+        return;
+      }
+
+      try {
+        let parsed = JSON.parse(text);
+        let items = [];
+        if (Array.isArray(parsed)) {
+          items = parsed;
+        } else if (parsed.meals && Array.isArray(parsed.meals)) {
+          items = parsed.meals;
+        } else if (parsed.content && parsed.kcal !== undefined) {
+          items = [parsed];
+        } else {
+          throw new Error('形式が不正です');
+        }
+
+        const date = document.getElementById('mealCurrentDate').value;
+        items.forEach(item => {
+          meals.push({
+            id: Date.now() + Math.random(),
+            date,
+            type: activeModalSlot,
+            content: item.content || 'AI追加食材',
+            kcal: parseInt(item.kcal, 10) || 0,
+            p: parseFloat(item.p) || 0,
+            f: parseFloat(item.f) || 0,
+            c: parseFloat(item.c) || 0,
+            image: item.image || ''
+          });
+        });
+
+        localStorage.setItem(MEAL_STORAGE_KEY, JSON.stringify(meals));
+        renderMealSlots();
+        document.getElementById('aiJsonInput').value = '';
+        closeMealModal();
+        alert('AIの食事データを追加しました！');
+      } catch (err) {
+        alert('JSONの解析に失敗しました。正しい形式のJSONデータを貼り付けてください。');
+      }
     }
 
     function setupSearchListener() {
@@ -4181,41 +4248,63 @@
           cell.appendChild(indicator);
         }
 
+        let pressTimer = null;
+        let isLongPress = false;
         let touchStartX = 0;
         let touchStartY = 0;
 
-        const handleTouchStart = (e) => {
+        const handleTouchOrMouseDown = (clientX, clientY) => {
+          isLongPress = false;
+          touchStartX = clientX;
+          touchStartY = clientY;
+
+          pressTimer = setTimeout(() => {
+            isLongPress = true;
+            if (hasMemo) {
+              triggerHaptic();
+              openMemoModal(dateKey, rec.memo);
+            }
+          }, 600);
+        };
+
+        const handleTouchOrMouseUp = (clientX, clientY) => {
+          if (pressTimer) clearTimeout(pressTimer);
+          
+          const moveX = Math.abs(clientX - touchStartX);
+          const moveY = Math.abs(clientY - touchStartY);
+
+          if (moveX >= 10 || moveY >= 10) return;
+
+          if (!isLongPress) {
+            const executeCellClick = () => {
+              startEdit(dateKey);
+            };
+
+            if (document.querySelector('.tab-btn[data-tab="tab-form"]').classList.contains('active') && isFormDirty()) {
+              showCustomConfirm("入力内容が保存されていません。<br>このまま移動しますか？", "移動する", executeCellClick);
+            } else {
+              executeCellClick();
+            }
+          }
+        };
+
+        cell.addEventListener('touchstart', (e) => {
           const touch = e.touches[0];
-          touchStartX = touch.clientX;
-          touchStartY = touch.clientY;
-        };
+          handleTouchOrMouseDown(touch.clientX, touch.clientY);
+        }, {passive: true});
 
-        const handleMouseDown = (e) => {
-          touchStartX = e.clientX;
-          touchStartY = e.clientY;
-        };
-
-        const handleTouchEnd = (e) => {
+        cell.addEventListener('touchend', (e) => {
           const touch = e.changedTouches[0];
-          const moveX = Math.abs(touch.clientX - touchStartX);
-          const moveY = Math.abs(touch.clientY - touchStartY);
-          if (moveX < 5 && moveY < 5) {
-            triggerCellClick(dateKey, rec);
-          }
-        };
+          handleTouchOrMouseUp(touch.clientX, touch.clientY);
+        });
 
-        const handleMouseUp = (e) => {
-          const moveX = Math.abs(e.clientX - touchStartX);
-          const moveY = Math.abs(e.clientY - touchStartY);
-          if (moveX < 5 && moveY < 5) {
-            triggerCellClick(dateKey, rec);
-          }
-        };
+        cell.addEventListener('mousedown', (e) => {
+          handleTouchOrMouseDown(e.clientX, e.clientY);
+        });
 
-        cell.addEventListener('touchstart', handleTouchStart, {passive: true});
-        cell.addEventListener('touchend', handleTouchEnd);
-        cell.addEventListener('mousedown', handleMouseDown);
-        cell.addEventListener('mouseup', handleMouseUp);
+        cell.addEventListener('mouseup', (e) => {
+          handleTouchOrMouseUp(e.clientX, e.clientY);
+        });
 
         grid.appendChild(cell);
       }
