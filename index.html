@@ -2049,8 +2049,11 @@
 
         <!-- 4. AI一括インポート -->
         <div id="modalViewAi" style="display: none;">
-          <div style="font-size:0.8rem; font-weight:600; color:var(--text-main); margin-bottom:4px;">AIの回答をここに貼り付け</div>
-          <div style="font-size:0.72rem; color:var(--text-sub); margin-bottom:6px;">AIに生成してもらった以下のJSONテキストをそのままペーストしてください。</div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <div style="font-size:0.8rem; font-weight:600; color:var(--text-main);">AIの回答をここに貼り付け</div>
+            <button type="button" class="btn-chip" onclick="copyAiPrompt()" style="font-size:0.72rem; padding:3px 8px; background:var(--accent-light); border-color:var(--accent); color:var(--accent); font-weight:600;">📋 AI用プロンプトをコピー</button>
+          </div>
+          <div style="font-size:0.72rem; color:var(--text-sub); margin-bottom:6px;">上のボタンでプロンプトをコピーし、AIに送って返ってきたJSONを下にペーストしてください。</div>
           
           <!-- 常時見える入力例の表示ボックス -->
           <div style="background: var(--card-sub); border: 1px solid var(--border); border-radius: 6px; padding: 8px; font-size: 0.72rem; font-family: monospace; color: var(--text-main); margin-bottom: 8px; user-select: all; word-break: break-all;">
@@ -3358,6 +3361,34 @@
       closeMealModal();
     }
 
+    function copyAiPrompt() {
+      const promptText = `あなたはダイエット・栄養管理アプリのデータ生成アシスタントです。
+以下の「食べたもの・写真の内容」をもとに、このアプリがインポートできるJSON形式のデータを作成してください。
+余計な解説文は一切含めず、必ず以下のJSON構造のコードブロック（またはJSONテキスト）のみを出力してください。
+
+【出力するJSONの形式】
+{
+  "meals": [
+    {
+      "content": "食材名と分量 (例: 白米 150g)",
+      "kcal": 234,
+      "p": 3.8,
+      "f": 0.5,
+      "c": 53.4
+    }
+  ]
+}
+
+【食べたもの・写真の内容】
+ここに食べたものを入力、または写真を送信してください。`;
+
+      navigator.clipboard.writeText(promptText).then(() => {
+        alert('AI用プロンプトをコピーしました！ChatGPTやGeminiに貼り付けてご活用ください。');
+      }).catch(err => {
+        alert('コピーに失敗しました。手動でコピーしてください。');
+      });
+    }
+
     function importAiMealJsonToSlot() {
       const text = document.getElementById('aiJsonInput').value.trim();
       if (!text) {
@@ -4552,7 +4583,7 @@
       } else if (weights.length > 0) {
         const validAllW = weights.filter(w => typeof w === 'number' && !isNaN(w));
         if (validAllW.length > 0) {
-          avgWeight = validAllW[validAllW.length - 1];
+          avgWidget = validAllW[validAllW.length - 1];
         }
       }
 
