@@ -999,6 +999,8 @@
       position: relative;
       overflow: hidden;
       transition: background 0.15s, border-color 0.15s;
+      user-select: none;
+      -webkit-user-select: none;
     }
 
     .calendar-cell:hover {
@@ -1035,12 +1037,6 @@
       line-height: 1;
       padding: 2px 4px;
       border-radius: 4px;
-    }
-    
-    .cell-day.has-memo {
-      text-decoration: underline;
-      text-decoration-style: dotted;
-      text-underline-offset: 2px;
     }
 
     .cell-weight {
@@ -2042,6 +2038,23 @@
     </div>
   </div>
 
+  <!-- ユーザー設定・名前変更モーダル -->
+  <div class="modal-overlay" id="nameModal">
+    <div class="modal-container" style="max-width: 340px;">
+      <div class="modal-header">
+        <h3>お名前の設定</h3>
+        <button type="button" class="modal-close-btn" onclick="closeNameModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="modalUserName">お名前・ニックネーム</label>
+          <input type="text" id="modalUserName" placeholder="あなたのお名前" style="font-size: 16px;">
+        </div>
+        <button type="button" class="btn-primary" onclick="saveUserNameFromModal()">保存する</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ユーザー設定モーダル -->
   <div class="modal-overlay" id="settingsModal">
     <div class="modal-container" style="max-width: 420px;">
@@ -2052,18 +2065,33 @@
       <div class="modal-body" id="settingsModalBody">
         <!-- トップメニュー -->
         <div id="settingsViewMain">
-          <div class="form-group" style="margin-bottom: 16px;">
-            <label for="settingUserName">お名前・ニックネーム</label>
-            <input type="text" id="settingUserName" placeholder="あなたのお名前" onblur="autoSaveUserName()">
-          </div>
-
           <!-- カテゴリ1: 基本設定 -->
           <div style="font-size:0.82rem; font-weight:600; color:var(--text-sub); margin-bottom: 4px;">基本設定</div>
           <div class="settings-menu-list">
+            <button type="button" class="settings-menu-btn" onclick="openNameModal()">
+              <div class="settings-menu-btn-content">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <span>お名前・ニックネーム設定</span>
+              </div>
+              <span id="currentNameDisplay" style="font-size: 0.8rem; color: var(--text-sub); margin-right: 4px;"></span>
+              <span>＞</span>
+            </button>
             <button type="button" class="settings-menu-btn" onclick="switchSettingsView('target')">
               <div class="settings-menu-btn-content">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
                 <span>目標設定（体重・カロリー・PFC）</span>
+              </div>
+              <span>＞</span>
+            </button>
+          </div>
+
+          <!-- カテゴリ2: 食事・メニュー管理 -->
+          <div style="font-size:0.82rem; font-weight:600; color:var(--text-sub); margin-bottom: 4px;">食事・メニュー管理</div>
+          <div class="settings-menu-list">
+            <button type="button" class="settings-menu-btn" onclick="openMealModal('朝食'); closeSettingsModal();">
+              <div class="settings-menu-btn-content">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/></svg>
+                <span>食材の管理</span>
               </div>
               <span>＞</span>
             </button>
@@ -2076,7 +2104,7 @@
             </button>
           </div>
 
-          <!-- カテゴリ2: データ管理 -->
+          <!-- カテゴリ3: データ管理 -->
           <div style="font-size:0.82rem; font-weight:600; color:var(--text-sub); margin-bottom: 4px;">データ</div>
           <div class="settings-menu-list">
             <button type="button" class="settings-menu-btn" onclick="exportAppData()">
@@ -2168,15 +2196,15 @@
         <div id="settingsViewPresets" style="display: none;">
           <button type="button" class="settings-back-btn" onclick="switchSettingsView('main')">＜ 設定トップに戻る</button>
           
-          <details style="margin-bottom: 14px; border: 1px dashed var(--border); border-radius: 8px; padding: 10px; background: #faf8f5;">
-            <summary style="font-size: 0.8rem; color: var(--accent); cursor: pointer; font-weight: 600;">+ 新しいマイ定番を追加する</summary>
+          <details style="margin-bottom: 14px; border: 1px dashed var(--border); border-radius: 8px; padding: 10px; background: #faf8f5;" id="newPresetDetails">
+            <summary style="font-size: 0.8rem; color: var(--accent); cursor: pointer; font-weight: 600;" id="presetFormSummary">+ 新しいマイ定番を追加する</summary>
             <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">
-              <input type="text" id="settingsNewPresetName" placeholder="メニュー名">
+              <input type="text" id="newPresetName" placeholder="商品名・メニュー名">
               <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px;">
-                <input type="number" id="settingsNewPresetKcal" placeholder="カロリー (kcal)">
-                <input type="number" id="settingsNewPresetP" step="0.1" placeholder="P (g)">
-                <input type="number" id="settingsNewPresetF" step="0.1" placeholder="F (g)">
-                <input type="number" id="settingsNewPresetC" step="0.1" placeholder="C (g)">
+                <input type="number" id="newPresetKcal" placeholder="カロリー (kcal)">
+                <input type="number" id="newPresetP" step="0.1" placeholder="P: たんぱく質 (g)">
+                <input type="number" id="newPresetF" step="0.1" placeholder="F: 脂質 (g)">
+                <input type="number" id="newPresetC" step="0.1" placeholder="C: 炭水化物 (g)">
               </div>
               <button type="button" class="btn-primary" style="padding: 7px; font-size: 0.82rem;" onclick="addNewPresetFromSettings()">定番に追加</button>
             </div>
@@ -2216,6 +2244,8 @@
     let records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
     let meals = JSON.parse(localStorage.getItem(MEAL_STORAGE_KEY)) || [];
     let mealScores = JSON.parse(localStorage.getItem(MEAL_SCORES_KEY)) || {};
+
+    let initialFormState = { weight: '', fat: '', memo: '', bowel: '未記録', mealScore: '' };
 
     function loadUserPresets() {
       let loaded = localStorage.getItem(PRESET_STORAGE_KEY);
@@ -2427,17 +2457,22 @@
       return { text: `(${WEEKDAYS[dayIdx]})`, cls };
     }
 
-    // フォームに入力中かどうかを判定するヘルパー
     function isFormDirty() {
       const weight = document.getElementById('weight').value.trim();
       const fat = document.getElementById('fat').value.trim();
       const memo = document.getElementById('memo').value.trim();
       const bowel = document.querySelector('input[name="bowel"]:checked').value;
       const mealScore = document.querySelector('input[name="mealScore_form"]:checked').value;
-      return weight !== '' || fat !== '' || memo !== '' || bowel !== '未記録' || mealScore !== '';
+
+      return (
+        weight !== initialFormState.weight ||
+        fat !== initialFormState.fat ||
+        memo !== initialFormState.memo ||
+        bowel !== initialFormState.bowel ||
+        mealScore !== initialFormState.mealScore
+      );
     }
 
-    // カスタム確認ダイアログを表示する関数
     function showCustomConfirm(msgText, okText, onConfirm) {
       const modal = document.getElementById('customConfirmModal');
       const msgEl = document.getElementById('customConfirmMsg');
@@ -2495,7 +2530,6 @@
         d.setDate(d.getDate() + direction);
         const nextVal = formatDate(d);
 
-        // 体重記録タブのときだけ、未保存データがあれば確認を挟む
         if (inputId === 'date' && isFormDirty()) {
           showCustomConfirm("入力内容が保存されていません。<br>このまま移動しますか？", "移動する", () => {
             refreshUI(nextVal);
@@ -2579,6 +2613,14 @@
         const defaultRadio = document.querySelector('input[name="bowel"][value="未記録"]');
         if (defaultRadio) defaultRadio.checked = true;
       }
+
+      initialFormState = {
+        weight: document.getElementById('weight').value.trim(),
+        fat: document.getElementById('fat').value.trim(),
+        memo: document.getElementById('memo').value.trim(),
+        bowel: (document.querySelector('input[name="bowel"]:checked') || {}).value || '未記録',
+        mealScore: (document.querySelector('input[name="mealScore_form"]:checked') || {}).value || ''
+      };
     }
 
     function setupTabs() {
@@ -2603,7 +2645,6 @@
             }
           };
 
-          // 記録タブから別のタブに移動しようとしたとき未保存があれば確認
           if (currentActiveBtn && currentActiveBtn.dataset.tab === 'tab-form' && targetTabId !== 'tab-form' && isFormDirty()) {
             showCustomConfirm("入力内容が保存されていません。<br>このまま移動しますか？", "移動する", executeTabSwitch);
           } else {
@@ -2642,13 +2683,7 @@
 
     function setupSettings() {
       document.getElementById('btnOpenSettings').addEventListener('click', () => {
-        document.getElementById('settingUserName').value = userConfig.name || '';
-        document.getElementById('settingTargetWeight').value = userConfig.targetWeight || '';
-        document.getElementById('settingTargetKcal').value = userConfig.targetKcal || '';
-        document.getElementById('settingTargetP').value = userConfig.targetP || '';
-        document.getElementById('settingTargetF').value = userConfig.targetF || '';
-        document.getElementById('settingTargetC').value = userConfig.targetC || '';
-        
+        document.getElementById('currentNameDisplay').textContent = userConfig.name ? `(${userConfig.name})` : '';
         switchSettingsView('main');
         document.getElementById('settingsModal').classList.add('open');
       });
@@ -2710,6 +2745,25 @@
       });
     }
 
+    function openNameModal() {
+      document.getElementById('settingsModal').classList.remove('open');
+      document.getElementById('modalUserName').value = userConfig.name || '';
+      document.getElementById('nameModal').classList.add('open');
+    }
+
+    function closeNameModal() {
+      document.getElementById('nameModal').classList.remove('open');
+      document.getElementById('settingsModal').classList.add('open');
+    }
+
+    function saveUserNameFromModal() {
+      userConfig.name = document.getElementById('modalUserName').value.trim();
+      localStorage.setItem(USER_CONFIG_KEY, JSON.stringify(userConfig));
+      applyUserConfigToUI();
+      document.getElementById('currentNameDisplay').textContent = userConfig.name ? `(${userConfig.name})` : '';
+      closeNameModal();
+    }
+
     function switchSettingsView(viewName) {
       const mainView = document.getElementById('settingsViewMain');
       const targetView = document.getElementById('settingsViewTarget');
@@ -2723,6 +2777,11 @@
       if (viewName === 'target') {
         targetView.style.display = 'block';
         titleEl.textContent = '目標設定';
+        document.getElementById('settingTargetWeight').value = userConfig.targetWeight || '';
+        document.getElementById('settingTargetKcal').value = userConfig.targetKcal || '';
+        document.getElementById('settingTargetP').value = userConfig.targetP || '';
+        document.getElementById('settingTargetF').value = userConfig.targetF || '';
+        document.getElementById('settingTargetC').value = userConfig.targetC || '';
       } else if (viewName === 'presets') {
         presetsView.style.display = 'block';
         titleEl.textContent = 'マイ定番の管理';
@@ -2730,13 +2789,8 @@
       } else {
         mainView.style.display = 'block';
         titleEl.textContent = '設定';
+        document.getElementById('currentNameDisplay').textContent = userConfig.name ? `(${userConfig.name})` : '';
       }
-    }
-
-    function autoSaveUserName() {
-      userConfig.name = document.getElementById('settingUserName').value.trim();
-      localStorage.setItem(USER_CONFIG_KEY, JSON.stringify(userConfig));
-      applyUserConfigToUI();
     }
 
     function renderSettingsPresets() {
@@ -2967,22 +3021,19 @@
 
     function startEdit(dateKey) {
       const executeEdit = () => {
+        loadRecordForDate(dateKey);
+
         const rec = records.find(r => r.date === dateKey);
-        if (!rec) return;
-
-        setDateValue('date', rec.date);
-        document.getElementById('weight').value = (rec.weight !== null && rec.weight !== undefined) ? rec.weight : '';
-        document.getElementById('fat').value = (rec.fat !== null && rec.fat !== undefined) ? rec.fat : '';
-        document.getElementById('memo').value = rec.memo || '';
-
-        const bowelVal = rec.bowel || '未記録';
-        const radio = document.querySelector(`input[name="bowel"][value="${bowelVal}"]`);
-        if (radio) radio.checked = true;
-
-        const weekdayInfo = getWeekdayInfo(rec.date);
-        document.getElementById('formTitle').textContent = `${rec.date} ${weekdayInfo.text} の記録を編集`;
-        document.getElementById('btnSubmit').textContent = '更新する';
-        document.getElementById('btnCancel').style.display = 'block';
+        const weekdayInfo = getWeekdayInfo(dateKey);
+        if (rec) {
+          document.getElementById('formTitle').textContent = `${dateKey} ${weekdayInfo.text} の記録を編集`;
+          document.getElementById('btnSubmit').textContent = '更新する';
+          document.getElementById('btnCancel').style.display = 'block';
+        } else {
+          document.getElementById('formTitle').textContent = `${dateKey} ${weekdayInfo.text} の記録`;
+          document.getElementById('btnSubmit').textContent = '保存する';
+          document.getElementById('btnCancel').style.display = 'none';
+        }
 
         document.querySelector('.tab-btn[data-tab="tab-form"]').click();
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -2997,13 +3048,8 @@
 
     function resetFormState() {
       const today = formatDate(new Date());
+      loadRecordForDate(today);
       setDateValue('date', today);
-
-      document.getElementById('weight').value = '';
-      document.getElementById('fat').value = '';
-      document.getElementById('memo').value = '';
-      const defaultRadio = document.querySelector('input[name="bowel"][value="未記録"]');
-      if (defaultRadio) defaultRadio.checked = true;
 
       document.getElementById('formTitle').textContent = '今日の記録';
       document.getElementById('btnSubmit').textContent = '保存する';
@@ -3997,18 +4043,7 @@
 
         const daySpan = document.createElement('span');
         daySpan.className = 'cell-day';
-        if (hasMemo) {
-          daySpan.classList.add('has-memo');
-          daySpan.title = 'タップしてメモを表示';
-        }
         daySpan.textContent = d;
-
-        if (hasMemo) {
-          daySpan.addEventListener('click', (e) => {
-            e.stopPropagation();
-            openMemoModal(dateKey, rec.memo);
-          });
-        }
         cell.appendChild(daySpan);
 
         if (rec && rec.weight !== null && rec.weight !== undefined) {
@@ -4046,31 +4081,49 @@
         if (hasMemo) {
           const indicator = document.createElement('div');
           indicator.className = 'cell-memo-indicator';
-          indicator.title = rec.memo;
-          indicator.addEventListener('click', (e) => {
-            e.stopPropagation();
-            openMemoModal(dateKey, rec.memo);
-          });
+          indicator.title = '長押しでメモを表示';
           cell.appendChild(indicator);
         }
 
-        cell.addEventListener('click', () => {
-          const executeCellClick = () => {
-            if (rec) {
-              startEdit(dateKey);
-            } else {
-              resetFormState();
-              setDateValue('date', dateKey);
-              document.querySelector('.tab-btn[data-tab="tab-form"]').click();
-            }
-          };
+        let pressTimer = null;
+        let isLongPress = false;
 
-          if (document.querySelector('.tab-btn[data-tab="tab-form"]').classList.contains('active') && isFormDirty()) {
-            showCustomConfirm("入力内容が保存されていません。<br>このまま移動しますか？", "移動する", executeCellClick);
-          } else {
-            executeCellClick();
+        const handleTouchOrMouseDown = () => {
+          isLongPress = false;
+          pressTimer = setTimeout(() => {
+            isLongPress = true;
+            if (hasMemo) {
+              triggerHaptic();
+              openMemoModal(dateKey, rec.memo);
+            }
+          }, 600);
+        };
+
+        const handleTouchOrMouseUp = (e) => {
+          if (pressTimer) clearTimeout(pressTimer);
+          if (!isLongPress) {
+            const executeCellClick = () => {
+              if (rec) {
+                startEdit(dateKey);
+              } else {
+                resetFormState();
+                setDateValue('date', dateKey);
+                document.querySelector('.tab-btn[data-tab="tab-form"]').click();
+              }
+            };
+
+            if (document.querySelector('.tab-btn[data-tab="tab-form"]').classList.contains('active') && isFormDirty()) {
+              showCustomConfirm("入力内容が保存されていません。<br>このまま移動しますか？", "移動する", executeCellClick);
+            } else {
+              executeCellClick();
+            }
           }
-        });
+        };
+
+        cell.addEventListener('mousedown', handleTouchOrMouseDown);
+        cell.addEventListener('mouseup', handleTouchOrMouseUp);
+        cell.addEventListener('touchstart', handleTouchOrMouseDown, {passive: true});
+        cell.addEventListener('touchend', handleTouchOrMouseUp);
 
         grid.appendChild(cell);
       }
