@@ -47,7 +47,6 @@
       justify-content: center;
     }
 
-    /* モーダル表示時に背景がスクロールしないようにするクラス */
     body.modal-open {
       overflow: hidden;
       position: fixed;
@@ -767,7 +766,7 @@
       display: flex;
       flex-direction: column;
       gap: 6px;
-      max-height: 440px; /* さらに縦幅を大きく広げました */
+      max-height: 440px;
       overflow-y: auto;
     }
 
@@ -2127,7 +2126,7 @@
           </div>
 
           <div style="text-align: center; margin-top: 24px; font-size: 0.75rem; color: var(--text-sub);">
-            Version 1.2.3
+            Version 1.2.5
           </div>
         </div>
 
@@ -2501,17 +2500,28 @@
         const info = getWeekdayInfo(targetVal);
         weekdayDisplay.textContent = info.text;
         weekdayDisplay.className = 'weekday-text ' + info.cls;
+
+        // 記録タブ側（`date`）の日付が変わったとき、タイトルも完全に同期させる
+        if (inputId === 'date') {
+          const rec = records.find(r => r.date === targetVal);
+          if (rec) {
+            document.getElementById('formTitle').textContent = `${targetVal.replace(/-/g, '/')} ${info.text} の記録を編集`;
+            document.getElementById('btnSubmit').textContent = '更新する';
+            document.getElementById('btnCancel').style.display = 'block';
+          } else {
+            document.getElementById('formTitle').textContent = `${targetVal.replace(/-/g, '/')} ${info.text} の記録`;
+            document.getElementById('btnSubmit').textContent = '保存する';
+            document.getElementById('btnCancel').style.display = 'none';
+          }
+        }
+
         if (onChangeCallback) onChangeCallback(targetVal);
       }
 
       input.addEventListener('change', () => {
         const val = input.value;
         if (!val) return;
-        textDisplay.textContent = val.replace(/-/g, '/');
-        const info = getWeekdayInfo(val);
-        weekdayDisplay.textContent = info.text;
-        weekdayDisplay.className = 'weekday-text ' + info.cls;
-        if (onChangeCallback) onChangeCallback(val);
+        refreshUI(val);
       });
 
       const handleStep = (direction) => {
@@ -3015,15 +3025,16 @@
     function startEdit(dateKey) {
       const executeEdit = () => {
         loadRecordForDate(dateKey);
+        setDateValue('date', dateKey);
 
         const rec = records.find(r => r.date === dateKey);
         const weekdayInfo = getWeekdayInfo(dateKey);
         if (rec) {
-          document.getElementById('formTitle').textContent = `${dateKey} ${weekdayInfo.text} の記録を編集`;
+          document.getElementById('formTitle').textContent = `${dateKey.replace(/-/g, '/')} ${weekdayInfo.text} の記録を編集`;
           document.getElementById('btnSubmit').textContent = '更新する';
           document.getElementById('btnCancel').style.display = 'block';
         } else {
-          document.getElementById('formTitle').textContent = `${dateKey} ${weekdayInfo.text} の記録`;
+          document.getElementById('formTitle').textContent = `${dateKey.replace(/-/g, '/')} ${weekdayInfo.text} の記録`;
           document.getElementById('btnSubmit').textContent = '保存する';
           document.getElementById('btnCancel').style.display = 'none';
         }
@@ -4180,13 +4191,7 @@
           if (pressTimer) clearTimeout(pressTimer);
           if (!isLongPress) {
             const executeCellClick = () => {
-              if (rec) {
-                startEdit(dateKey);
-              } else {
-                resetFormState();
-                setDateValue('date', dateKey);
-                document.querySelector('.tab-btn[data-tab="tab-form"]').click();
-              }
+              startEdit(dateKey);
             };
 
             if (document.querySelector('.tab-btn[data-tab="tab-form"]').classList.contains('active') && isFormDirty()) {
