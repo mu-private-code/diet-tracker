@@ -675,7 +675,7 @@
       padding: 6px 0;
     }
 
-    /* モーダル共通 */
+    /* モーダル共通 (Safariのツールバーを考慮した高さ制限) */
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -699,7 +699,8 @@
       border-radius: var(--radius);
       width: 100%;
       max-width: 460px;
-      max-height: 90vh;
+      max-height: 82vh; /* スマホブラウザの上下ツールバーで見切れない高さに最適化 */
+      max-height: calc(100svh - 40px); /* セーフエリア対応 */
       display: flex;
       flex-direction: column;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
@@ -766,7 +767,7 @@
       display: flex;
       flex-direction: column;
       gap: 6px;
-      max-height: 440px;
+      max-height: 380px; /* ブラウザでも収まりの良いリストの最大高さに調整 */
       overflow-y: auto;
     }
 
@@ -2126,7 +2127,7 @@
           </div>
 
           <div style="text-align: center; margin-top: 24px; font-size: 0.75rem; color: var(--text-sub);">
-            Version 1.2.5
+            Version 1.2.4
           </div>
         </div>
 
@@ -2501,7 +2502,6 @@
         weekdayDisplay.textContent = info.text;
         weekdayDisplay.className = 'weekday-text ' + info.cls;
 
-        // 記録タブ側（`date`）の日付が変わったとき、タイトルも完全に同期させる
         if (inputId === 'date') {
           const rec = records.find(r => r.date === targetVal);
           if (rec) {
