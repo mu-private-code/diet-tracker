@@ -1,5 +1,6 @@
-<!-- Weight & Body Tracker - Version 1.3.3 -->
-<!-- [更新履歴] Version 1.3.3: 記録画面のカードタイトル（「今日/昨日/明日」付き）や日付表示の最適化、タイトルバーの軽量化を行いました -->
+<!-- Weight & Body Tracker - Version 1.3.4 -->
+<!-- [更新履歴] Version 1.3.3: 記録画面のカードタイトル（「今日/昨日/明日」付き）や日付表示の最適化、タイトルバーの軽量化 -->
+<!-- [更新履歴] Version 1.3.4: 2188行 目標体重設定の位と注釈文言を変更 -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -1422,8 +1423,6 @@
   </style>
 </head>
 <body>
-<!-- Weight & Body Tracker - Version 1.3.3 -->
-<!-- [更新履歴] Version 1.3.3: 上部タイトルの削除、日付への相対表示(今日・昨日・明日)追加、食材の並び替え・リセット機能の追加 -->
   <div class="container">
     <header>
       <button type="button" class="btn-settings-trigger" id="btnOpenSettings" title="設定">
@@ -2179,7 +2178,7 @@
           </div>
 
           <div style="text-align: center; margin-top: 24px; font-size: 0.75rem; color: var(--text-sub);">
-            Version 1.3.3
+            Version 1.3.4
           </div>
         </div>
 
@@ -2189,7 +2188,10 @@
           <form id="targetSettingsForm">
             <div class="form-group" style="margin-bottom: 12px;">
               <label for="settingTargetWeight">目標体重 (kg)</label>
-              <input type="number" id="settingTargetWeight" step="0.1" placeholder="例: 48.0">
+              <input type="number" id="settingTargetWeight" step="0.01" placeholder="例: 48.0">
+              <div style="font-size: 0.72rem; color: var(--danger); margin-top: 3px; line-height: 1.4;">
+                ※グラフの表示位置の都合上、本来の目標体重に <strong>+0.25 kg</strong> した値を入力すると正確な位置に線が表示されます。
+              </div>
             </div>
 
             <div class="form-group" style="margin-bottom: 12px;">
@@ -4595,7 +4597,7 @@
       }
     }
 
-    // 目標体重の横線を描画するためのカスタムChart.jsプラグイン（テキスト削除済み・シンプル化）
+    // 目標体重の横線を描画するためのカスタムChart.jsプラグイン
     const targetLinePlugin = {
       id: 'targetLinePlugin',
       beforeDraw: (chart) => {
