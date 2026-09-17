@@ -2129,6 +2129,13 @@
               </div>
               <span>＞</span>
             </button>
+            <button type="button" class="settings-menu-btn" onclick="switchSettingsView('foodOrder')">
+              <div class="settings-menu-btn-content">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                <span>食材の並び替え・リセット</span>
+              </div>
+              <span>＞</span>
+            </button>
             <button type="button" class="settings-menu-btn" onclick="switchSettingsView('presets')">
               <div class="settings-menu-btn-content">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
@@ -2166,7 +2173,7 @@
           </div>
 
           <div style="text-align: center; margin-top: 24px; font-size: 0.75rem; color: var(--text-sub);">
-            Version 1.3.0
+            Version 1.3.1
           </div>
         </div>
 
@@ -2235,6 +2242,17 @@
           </form>
         </div>
 
+        <div id="settingsViewFoodOrder" style="display: none;">
+          <button type="button" class="settings-back-btn" onclick="switchSettingsView('main')">＜ 設定トップに戻る</button>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-sub);">
+              ドラッグ＆ドロップで並び替え
+            </div>
+            <button type="button" class="btn-chip" onclick="resetFoodOrder()" style="font-size: 0.72rem; padding: 2px 8px; color: var(--danger); border-color: var(--border);">並び順をリセット</button>
+          </div>
+          <div class="preset-list-modal" id="settingsFoodOrderListContainer" style="max-height: 280px;"></div>
+        </div>
+
         <div id="settingsViewPresets" style="display: none;">
           <button type="button" class="settings-back-btn" onclick="switchSettingsView('main')">＜ 設定トップに戻る</button>
           <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-sub); margin-bottom: 6px;">
@@ -2286,7 +2304,6 @@
 
     let presets = loadUserPresets();
 
-    // デフォルト食材リスト（ご指定の並び順 ＋ 新規追加したサラダチキン2種を適切な位置に配置）
     const BASE_DEFAULT_FOODS = [
       { id: 'def_1', name: '白米 (ご飯)', maker: '', kana: 'はくまい ごはん', kcal: 156, p: 2.5, f: 0.3, c: 35.6, unit: 'g', defaultAmount: 100, isTotalValue: false, image: '', isDefault: true },
       { id: 'def_18', name: '生卵', maker: '', kana: 'なまたまご たまご', kcal: 76, p: 6.2, f: 5.2, c: 0.2, unit: '個', defaultAmount: 1, isTotalValue: true, image: '', isDefault: true },
@@ -2296,7 +2313,6 @@
       { id: 'def_20', name: '糖質0サラダチキン ハーブ', maker: '伊藤ハム', kana: 'とうしつぜろさらだちきん は-ぶ', kcal: 62, p: 11.5, f: 1.7, c: 0.4, unit: '個', defaultAmount: 1, isTotalValue: true, image: '', isDefault: true },
       { id: 'def_16', name: 'MILK PROTEIN ヨーグルト 脂肪0 ピーチ', maker: 'ザバス', kana: 'ざばす みるくぷろていん よ-ぐると しぼうぜろ ぴ-ち', kcal: 90, p: 15.0, f: 0.0, c: 7.7, unit: '個', defaultAmount: 1, isTotalValue: true, image: '', isDefault: true },
       { id: 'def_17', name: 'MILK PROTEIN ヨーグルト 脂肪0 マンゴー', maker: 'ザバス', kana: 'ざばす みるくぷろていん よ-ぐると しぼうぜろ まんご-', kcal: 90, p: 15.0, f: 0.0, c: 7.7, unit: '個', defaultAmount: 1, isTotalValue: true, image: '', isDefault: true },
-      // セブンイレブン サラダチキン スモーク（玄米の上）
       { id: 'def_21', name: 'サラダチキン スモーク', maker: 'セブンプレミアム', kana: 'さらだちきん すも-く', kcal: 117, p: 26.0, f: 1.3, c: 0.0, unit: '個', defaultAmount: 1, isTotalValue: true, image: '', isDefault: true },
       { id: 'def_2', name: '玄米 (ご飯)', maker: '', kana: 'げんまい', kcal: 152, p: 2.8, f: 1.0, c: 34.2, unit: 'g', defaultAmount: 100, isTotalValue: false, image: '', isDefault: true },
       { id: 'def_3', name: '食パン', maker: '', kana: 'しょくぱん', kcal: 248, p: 8.9, f: 4.1, c: 44.4, unit: 'g', defaultAmount: 60, isTotalValue: false, image: '', isDefault: true },
@@ -2812,6 +2828,7 @@
         localStorage.setItem(USER_CONFIG_KEY, JSON.stringify(userConfig));
         applyUserConfigToUI();
         renderMealSlots();
+        updateChart();
         closeSettingsModal();
       });
     }
@@ -2839,11 +2856,13 @@
     function switchSettingsView(viewName) {
       const mainView = document.getElementById('settingsViewMain');
       const targetView = document.getElementById('settingsViewTarget');
+      const foodOrderView = document.getElementById('settingsViewFoodOrder');
       const presetsView = document.getElementById('settingsViewPresets');
       const titleEl = document.getElementById('settingsModalTitle');
 
       mainView.style.display = 'none';
       targetView.style.display = 'none';
+      foodOrderView.style.display = 'none';
       presetsView.style.display = 'none';
 
       if (viewName === 'target') {
@@ -2859,6 +2878,10 @@
         document.getElementById('pfcPercentContainer').style.display = 'none';
         document.getElementById('pfcPercentHint').style.display = 'none';
         document.getElementById('pfcPercentGramPreview').style.display = 'none';
+      } else if (viewName === 'foodOrder') {
+        foodOrderView.style.display = 'block';
+        titleEl.textContent = '食材の並び替え';
+        renderSettingsFoodOrder();
       } else if (viewName === 'presets') {
         presetsView.style.display = 'block';
         titleEl.textContent = 'マイ定番の管理';
@@ -2868,6 +2891,81 @@
         titleEl.textContent = '設定';
         document.getElementById('currentNameDisplay').textContent = userConfig.name ? `(${userConfig.name})` : '';
       }
+    }
+
+    function renderSettingsFoodOrder() {
+      const container = document.getElementById('settingsFoodOrderListContainer');
+      container.innerHTML = '';
+      const allFoods = getAllCommonFoods();
+
+      allFoods.forEach((food, index) => {
+        const item = document.createElement('div');
+        item.className = 'preset-item-modal';
+        item.draggable = true;
+        item.dataset.id = food.id;
+
+        item.addEventListener('dragstart', (e) => {
+          e.dataTransfer.setData('text/plain', food.id);
+          item.classList.add('dragging');
+          lastVibrateIndex = index;
+        });
+        item.addEventListener('dragend', () => {
+          item.classList.remove('dragging');
+          lastVibrateIndex = -1;
+        });
+        item.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          if (index !== lastVibrateIndex) {
+            triggerHaptic();
+            lastVibrateIndex = index;
+          }
+        });
+        item.addEventListener('drop', (e) => {
+          e.preventDefault();
+          const draggedId = e.dataTransfer.getData('text/plain');
+          const targetId = food.id;
+          if (draggedId !== targetId) {
+            reorderCommonFoods(draggedId, targetId);
+          }
+        });
+
+        const imgHtml = food.image 
+          ? `<img src="${food.image}" class="preset-thumb" alt="">` 
+          : `<div class="preset-thumb-placeholder">🍽️</div>`;
+
+        item.innerHTML = `
+          <div class="preset-drag-handle" title="ドラッグして並び替え">☰</div>
+          <div style="display:flex; align-items:center; gap:8px; flex:1;">
+            ${imgHtml}
+            <div>
+              <div style="font-size:0.85rem; font-weight:600; color:var(--text-main);">${escapeHtml(food.name)}</div>
+              <div style="font-size:0.72rem; color:var(--text-sub);">${food.kcal || 0} kcal</div>
+            </div>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function reorderCommonFoods(draggedId, targetId) {
+      const allFoods = getAllCommonFoods();
+      const draggedIdx = allFoods.findIndex(f => f.id === draggedId);
+      const targetIdx = allFoods.findIndex(f => f.id === targetId);
+      if (draggedIdx === -1 || targetIdx === -1) return;
+
+      const [moved] = allFoods.splice(draggedIdx, 1);
+      allFoods.splice(targetIdx, 0, moved);
+
+      const orderIds = allFoods.map(f => f.id);
+      localStorage.setItem(FOOD_ORDER_KEY, JSON.stringify(orderIds));
+      renderSettingsFoodOrder();
+    }
+
+    function resetFoodOrder() {
+      if (!confirm('食材の並び順を初期状態に戻しますか？')) return;
+      localStorage.removeItem(FOOD_ORDER_KEY);
+      renderSettingsFoodOrder();
+      alert('並び順を初期状態にリセットしました！');
     }
 
     function renderSettingsPresets() {
@@ -4462,6 +4560,33 @@
       }
     }
 
+    // 目標体重の横線を描画するためのカスタムChart.jsプラグイン（テキスト削除済み・シンプル化）
+    const targetLinePlugin = {
+      id: 'targetLinePlugin',
+      beforeDraw: (chart) => {
+        const targetW = userConfig.targetWeight;
+        if (!targetW) return;
+        
+        const yScale = chart.scales.yWeight;
+        if (!yScale) return;
+
+        const ctx = chart.ctx;
+        const yPos = yScale.getPixelForValue(targetW);
+
+        if (yPos >= chart.chartArea.top && yPos <= chart.chartArea.bottom) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(chart.chartArea.left, yPos);
+          ctx.lineTo(chart.chartArea.right, yPos);
+          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = '#9c826b'; // モカブラウン
+          ctx.setLineDash([4, 4]); // 点線
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
+    };
+
     function initChart() {
       const ctx = document.getElementById('weightChart').getContext('2d');
       chartInstance = new Chart(ctx, {
@@ -4547,7 +4672,8 @@
               grid: { display: false }
             }
           }
-        }
+        },
+        plugins: [targetLinePlugin]
       });
       updateChart();
     }
@@ -4619,6 +4745,9 @@
       }
 
       let targetMinW = Math.min(avgWeight - 5.0, 42.0);
+      if (userConfig.targetWeight) {
+        targetMinW = Math.min(targetMinW, userConfig.targetWeight - 1.0);
+      }
       if (visibleWeights.length > 0) {
         const minVal = Math.min(...visibleWeights);
         targetMinW = Math.min(targetMinW, minVal - 0.5);
@@ -4626,6 +4755,9 @@
       let wMin = Math.floor(targetMinW * 2) / 2;
 
       let maxValW = visibleWeights.length > 0 ? Math.max(...visibleWeights) : avgWeight;
+      if (userConfig.targetWeight) {
+        maxValW = Math.max(maxValW, userConfig.targetWeight + 1.0);
+      }
       let wMax = Math.ceil((Math.max(maxValW, 48.0) + 0.5) * 2) / 2;
       if (wMin === wMax) wMax += 1.0;
 
