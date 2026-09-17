@@ -1,3 +1,4 @@
+<!-- Weight & Body Tracker - Version 1.3.2 -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -222,6 +223,16 @@
     }
     .weekday-text.sat { color: var(--saturday); }
     .weekday-text.sun { color: var(--sunday); }
+
+    .date-relative-tag {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--accent);
+      background: var(--accent-light);
+      padding: 1px 6px;
+      border-radius: 4px;
+      margin-right: 4px;
+    }
 
     .cal-picker-wrapper {
       position: relative;
@@ -1447,6 +1458,7 @@
               <div class="date-navigator">
                 <button type="button" class="date-nav-arrow" id="btnWeightPrevDay" title="前日へ">＜</button>
                 <div class="date-nav-display">
+                  <span id="weightRelativeTag" class="date-relative-tag">今日</span>
                   <span id="weightDateDisplay">2026/09/08</span>
                   <span class="weekday-text" id="weightWeekdayDisplay">(火)</span>
                 </div>
@@ -1600,6 +1612,7 @@
           <div class="date-navigator">
             <button type="button" class="date-nav-arrow" id="btnMealPrevDay" title="前日へ">＜</button>
             <div class="date-nav-display">
+              <span id="mealRelativeTag" class="date-relative-tag">今日</span>
               <span id="mealDateDisplay">2026/09/08</span>
               <span class="weekday-text" id="mealWeekdayDisplay">(火)</span>
             </div>
@@ -2057,11 +2070,10 @@
 
         <!-- 4. AI一括インポート -->
         <div id="modalViewAi" style="display: none;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
             <div style="font-size:0.8rem; font-weight:600; color:var(--text-main);">AIの回答をここに貼り付け</div>
             <button type="button" class="btn-chip" onclick="copyAiPrompt()" style="font-size:0.72rem; padding:3px 8px; background:var(--accent-light); border-color:var(--accent); color:var(--accent); font-weight:600;">📋 AI用プロンプトをコピー</button>
           </div>
-          <div style="font-size:0.72rem; color:var(--text-sub); margin-bottom:6px;">上のボタンでプロンプトをコピーし、AIに送って返ってきたJSONを下にペーストしてください。</div>
           
           <div style="background: var(--card-sub); border: 1px solid var(--border); border-radius: 6px; padding: 8px; font-size: 0.72rem; font-family: monospace; color: var(--text-main); margin-bottom: 8px; user-select: all; word-break: break-all;">
             入力例:<br>
@@ -2173,7 +2185,7 @@
           </div>
 
           <div style="text-align: center; margin-top: 24px; font-size: 0.75rem; color: var(--text-sub);">
-            Version 1.3.1
+            Version 1.3.2
           </div>
         </div>
 
@@ -2435,11 +2447,11 @@
     window.addEventListener('DOMContentLoaded', () => {
       const today = formatDate(new Date());
 
-      setupDateNavigator('date', 'weightDateDisplay', 'weightWeekdayDisplay', 'btnWeightPrevDay', 'btnWeightNextDay', (newDate) => {
+      setupDateNavigator('date', 'weightDateDisplay', 'weightWeekdayDisplay', 'weightRelativeTag', 'btnWeightPrevDay', 'btnWeightNextDay', (newDate) => {
         loadRecordForDate(newDate);
       });
 
-      setupDateNavigator('mealCurrentDate', 'mealDateDisplay', 'mealWeekdayDisplay', 'btnMealPrevDay', 'btnMealNextDay', (newDate) => {
+      setupDateNavigator('mealCurrentDate', 'mealDateDisplay', 'mealWeekdayDisplay', 'mealRelativeTag', 'btnMealPrevDay', 'btnMealNextDay', (newDate) => {
         syncMealScoreUI(newDate);
         renderMealSlots();
       });
@@ -2503,6 +2515,21 @@
       return { text: `(${WEEKDAYS[dayIdx]})`, cls };
     }
 
+    function getRelativeDayText(dateStr) {
+      if (!dateStr) return '';
+      const target = new Date(dateStr + 'T00:00:00');
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const diffTime = target - today;
+      const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays === 0) return '今日';
+      if (diffDays === -1) return '昨日';
+      if (diffDays === 1) return '明日';
+      return '';
+    }
+
     function isFormDirty() {
       const weight = document.getElementById('weight').value.trim();
       const fat = document.getElementById('fat').value.trim();
@@ -2547,10 +2574,11 @@
       };
     }
 
-    function setupDateNavigator(inputId, textDisplayId, weekdayDisplayId, prevBtnId, nextBtnId, onChangeCallback) {
+    function setupDateNavigator(inputId, textDisplayId, weekdayDisplayId, relativeTagId, prevBtnId, nextBtnId, onChangeCallback) {
       const input = document.getElementById(inputId);
       const textDisplay = document.getElementById(textDisplayId);
       const weekdayDisplay = document.getElementById(weekdayDisplayId);
+      const relativeTag = document.getElementById(relativeTagId);
       const prevBtn = document.getElementById(prevBtnId);
       const nextBtn = document.getElementById(nextBtnId);
 
@@ -2560,6 +2588,14 @@
         const info = getWeekdayInfo(targetVal);
         weekdayDisplay.textContent = info.text;
         weekdayDisplay.className = 'weekday-text ' + info.cls;
+
+        const relText = getRelativeDayText(targetVal);
+        if (relText) {
+          relativeTag.textContent = relText;
+          relativeTag.style.display = 'inline-block';
+        } else {
+          relativeTag.style.display = 'none';
+        }
 
         if (inputId === 'date') {
           const rec = records.find(r => r.date === targetVal);
