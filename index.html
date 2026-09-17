@@ -1,4 +1,5 @@
-<!-- Weight & Body Tracker - Version 1.3.2 -->
+<!-- Weight & Body Tracker - Version 1.3.3 -->
+<!-- [更新履歴] Version 1.3.3: 記録画面のカードタイトル（「今日/昨日/明日」付き）や日付表示の最適化、タイトルバーの軽量化を行いました -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -64,16 +65,9 @@
 
     header {
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-end;
       align-items: center;
-      padding: 4px 2px;
-    }
-
-    header h1 {
-      font-size: 1.25rem;
-      font-weight: 600;
-      letter-spacing: -0.01em;
-      color: var(--text-main);
+      padding: 2px 2px;
     }
 
     .btn-settings-trigger {
@@ -1428,10 +1422,10 @@
   </style>
 </head>
 <body>
-
+<!-- Weight & Body Tracker - Version 1.3.3 -->
+<!-- [更新履歴] Version 1.3.3: 上部タイトルの削除、日付への相対表示(今日・昨日・明日)追加、食材の並び替え・リセット機能の追加 -->
   <div class="container">
     <header>
-      <h1>体重・ダイエット管理</h1>
       <button type="button" class="btn-settings-trigger" id="btnOpenSettings" title="設定">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"/>
@@ -2185,7 +2179,7 @@
           </div>
 
           <div style="text-align: center; margin-top: 24px; font-size: 0.75rem; color: var(--text-sub);">
-            Version 1.3.2
+            Version 1.3.3
           </div>
         </div>
 
@@ -2599,12 +2593,14 @@
 
         if (inputId === 'date') {
           const rec = records.find(r => r.date === targetVal);
+          // 記録カードのタイトルにも「今日」「昨日」「明日」などを反映
+          const titleDateStr = relText ? `${relText} (${targetVal.replace(/-/g, '/')})` : `${targetVal.replace(/-/g, '/')} ${info.text}`;
           if (rec) {
-            document.getElementById('formTitle').textContent = `${targetVal.replace(/-/g, '/')} ${info.text} の記録を編集`;
+            document.getElementById('formTitle').textContent = `${titleDateStr} の記録を編集`;
             document.getElementById('btnSubmit').textContent = '更新する';
             document.getElementById('btnCancel').style.display = 'block';
           } else {
-            document.getElementById('formTitle').textContent = `${targetVal.replace(/-/g, '/')} ${info.text} の記録`;
+            document.getElementById('formTitle').textContent = `${titleDateStr} の記録`;
             document.getElementById('btnSubmit').textContent = '保存する';
             document.getElementById('btnCancel').style.display = 'none';
           }
@@ -3219,12 +3215,15 @@
 
         const rec = records.find(r => r.date === dateKey);
         const weekdayInfo = getWeekdayInfo(dateKey);
+        const relText = getRelativeDayText(dateKey);
+        const datePrefix = relText ? `${relText} (${dateKey.replace(/-/g, '/')})` : `${dateKey.replace(/-/g, '/')} ${weekdayInfo.text}`;
+
         if (rec) {
-          document.getElementById('formTitle').textContent = `${dateKey.replace(/-/g, '/')} ${weekdayInfo.text} の記録を編集`;
+          document.getElementById('formTitle').textContent = `${datePrefix} の記録を編集`;
           document.getElementById('btnSubmit').textContent = '更新する';
           document.getElementById('btnCancel').style.display = 'block';
         } else {
-          document.getElementById('formTitle').textContent = `${dateKey.replace(/-/g, '/')} ${weekdayInfo.text} の記録`;
+          document.getElementById('formTitle').textContent = `${datePrefix} の記録`;
           document.getElementById('btnSubmit').textContent = '保存する';
           document.getElementById('btnCancel').style.display = 'none';
         }
