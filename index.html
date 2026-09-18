@@ -1,15 +1,16 @@
-<!-- Weight & Body Tracker - Version 1.3.8 2221行目-->
+<!-- Weight & Body Tracker - Version 1.3.9 2221行目-->
 <!-- [更新履歴] Version 1.3.3: 記録画面のカードタイトル（「今日/昨日/明日」付き）や日付表示の最適化、タイトルバーの軽量化 -->
 <!-- [更新履歴] Version 1.3.4: 目標設定時の注釈文言を廃止、AI一括入力の画面拡大防止・ペーストボタン追加 -->
 <!-- [更新履歴] Version 1.3.5: 不安定な目標体重の「横線」を廃止し、「進捗バッジ」に変更 -->
 <!-- [更新履歴] Version 1.3.6: AI一括入力画面のレイアウトを改善（見出しとボタンを上下配置にし、ボタン順序を変更） -->
 <!-- [更新履歴] Version 1.3.7: カレンダー文字サイズ拡大・縮小切り替え機能の追加 -->
 <!-- [更新履歴] Version 1.3.8: カレンダー拡大時のレイアウト崩れ（文字やアイコンの重なり）を修正 -->
+<!-- [更新履歴] Version 1.3.9: 拡大時のラベル省略（通・食）とダブルタップによる画面ズームの無効化 -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Weight & Body Tracker</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
@@ -1022,6 +1023,7 @@
       cursor: pointer;
       position: relative;
       overflow: hidden;
+      touch-action: manipulation; /* ダブルタップによるズームを防止 */
       transition: background 0.15s, border-color 0.15s, padding 0.2s, aspect-ratio 0.2s;
       user-select: none;
       -webkit-user-select: none;
@@ -1096,6 +1098,13 @@
       transition: width 0.2s, height 0.2s;
     }
 
+    .cell-tag-subtext::after {
+      content: "お通じ";
+    }
+    .cell-tag-item:nth-child(2) .cell-tag-subtext::after {
+      content: "食事";
+    }
+
     .cell-tag-subtext {
       font-size: 0.45rem;
       color: #9e9387;
@@ -1116,7 +1125,7 @@
 
     /* カレンダー拡大モード用スタイル（修正版） */
     .calendar-grid.large-view .calendar-cell {
-      aspect-ratio: 1 / 1.5; /* 高さを確保して重なりを防止 */
+      aspect-ratio: 1 / 1.5;
       padding: 6px 2px;
       gap: 3px;
     }
@@ -1130,15 +1139,22 @@
       font-size: 0.9rem;
     }
     .calendar-grid.large-view .cell-tags-row {
-      gap: 4px;
+      gap: 6px;
     }
     .calendar-grid.large-view .cell-tag-item svg {
-      width: 20px;
-      height: 20px;
+      width: 18px;
+      height: 18px;
     }
     .calendar-grid.large-view .cell-tag-subtext {
-      font-size: 0.5rem;
-      transform: scale(0.9);
+      font-size: 0.55rem;
+      transform: scale(1);
+    }
+    /* 拡大時のみ「通」「食」に切り替え */
+    .calendar-grid.large-view .cell-tag-item:nth-child(1) .cell-tag-subtext::after {
+      content: "通";
+    }
+    .calendar-grid.large-view .cell-tag-item:nth-child(2) .cell-tag-subtext::after {
+      content: "食";
     }
 
     .calendar-legend-card {
@@ -1863,7 +1879,7 @@
         <!-- お母様向けの文字サイズ切り替えボタン -->
         <div style="display: flex; justify-content: flex-end; margin-bottom: 8px;">
           <button type="button" class="btn-chip" id="btnToggleCalendarSize" onclick="toggleCalendarSize()" style="font-size: 0.78rem; padding: 4px 10px;">
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:3px;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>カレンダーを大きくする
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:3px;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>カレンダーを大きくする
           </button>
         </div>
 
@@ -2260,7 +2276,7 @@
           </div>
 
           <div style="text-align: center; margin-top: 24px; font-size: 0.75rem; color: var(--text-sub);">
-            Version 1.3.8
+            Version 1.3.9
           </div>
         </div>
 
@@ -4533,7 +4549,7 @@
         if (rec && faceIcons[rec.bowel]) {
           const bowelDiv = document.createElement('div');
           bowelDiv.className = 'cell-tag-item';
-          bowelDiv.innerHTML = `${faceIcons[rec.bowel]}<span class="cell-tag-subtext">お通じ</span>`;
+          bowelDiv.innerHTML = `${faceIcons[rec.bowel]}<span class="cell-tag-subtext"></span>`;
           tagsRow.appendChild(bowelDiv);
           hasData = true;
         }
@@ -4541,7 +4557,7 @@
         if (mealScore && mealScoreIcons[mealScore]) {
           const mealDiv = document.createElement('div');
           mealDiv.className = 'cell-tag-item';
-          mealDiv.innerHTML = `${mealScoreIcons[mealScore]}<span class="cell-tag-subtext">食事</span>`;
+          mealDiv.innerHTML = `${mealScoreIcons[mealScore]}<span class="cell-tag-subtext"></span>`;
           tagsRow.appendChild(mealDiv);
           hasData = true;
         }
@@ -5001,9 +5017,6 @@
       });
     }
 
-    document.querySelectorAll('.btn-chip-mode').forEach(byte => {
-      // 既存のイベントリスナーに準ずる
-    });
     document.querySelectorAll('.btn-chip-mode').forEach(btn => {
       btn.addEventListener('click', (e) => {
         document.querySelectorAll('.btn-chip-mode').forEach(b => b.classList.remove('active'));
