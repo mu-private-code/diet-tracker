@@ -1,9 +1,10 @@
-<!-- Weight & Body Tracker - Version 1.3.7 2221行目-->
+<!-- Weight & Body Tracker - Version 1.3.8 2221行目-->
 <!-- [更新履歴] Version 1.3.3: 記録画面のカードタイトル（「今日/昨日/明日」付き）や日付表示の最適化、タイトルバーの軽量化 -->
 <!-- [更新履歴] Version 1.3.4: 目標設定時の注釈文言を廃止、AI一括入力の画面拡大防止・ペーストボタン追加 -->
 <!-- [更新履歴] Version 1.3.5: 不安定な目標体重の「横線」を廃止し、「進捗バッジ」に変更 -->
 <!-- [更新履歴] Version 1.3.6: AI一括入力画面のレイアウトを改善（見出しとボタンを上下配置にし、ボタン順序を変更） -->
 <!-- [更新履歴] Version 1.3.7: カレンダー文字サイズ拡大・縮小切り替え機能の追加 -->
+<!-- [更新履歴] Version 1.3.8: カレンダー拡大時のレイアウト崩れ（文字やアイコンの重なり）を修正 -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -1003,7 +1004,7 @@
     .calendar-grid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
-      gap: 3px;
+      gap: 4px;
       transition: all 0.2s;
     }
 
@@ -1012,12 +1013,12 @@
       border: 1px solid var(--border);
       border-radius: 6px;
       aspect-ratio: 1 / 1.35;
-      padding: 3px 1px;
+      padding: 4px 2px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
-      gap: 1px;
+      gap: 2px;
       cursor: pointer;
       position: relative;
       overflow: hidden;
@@ -1046,8 +1047,8 @@
       background: var(--accent);
       color: #fff;
       border-radius: 50%;
-      width: 15px;
-      height: 15px;
+      width: 17px;
+      height: 17px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -1113,27 +1114,31 @@
       border-radius: 50%;
     }
 
-    /* カレンダー拡大モード用スタイル */
+    /* カレンダー拡大モード用スタイル（修正版） */
     .calendar-grid.large-view .calendar-cell {
-      aspect-ratio: 1 / 1.15;
+      aspect-ratio: 1 / 1.5; /* 高さを確保して重なりを防止 */
       padding: 6px 2px;
+      gap: 3px;
     }
     .calendar-grid.large-view .cell-day {
-      font-size: 0.95rem;
+      font-size: 0.9rem;
     }
     .calendar-grid.large-view .cell-weight {
-      font-size: 0.82rem;
+      font-size: 0.78rem;
     }
     .calendar-weekdays.large-view {
       font-size: 0.9rem;
     }
+    .calendar-grid.large-view .cell-tags-row {
+      gap: 4px;
+    }
     .calendar-grid.large-view .cell-tag-item svg {
-      width: 18px;
-      height: 18px;
+      width: 20px;
+      height: 20px;
     }
     .calendar-grid.large-view .cell-tag-subtext {
-      font-size: 0.55rem;
-      transform: scale(1);
+      font-size: 0.5rem;
+      transform: scale(0.9);
     }
 
     .calendar-legend-card {
@@ -2255,7 +2260,7 @@
           </div>
 
           <div style="text-align: center; margin-top: 24px; font-size: 0.75rem; color: var(--text-sub);">
-            Version 1.3.7
+            Version 1.3.8
           </div>
         </div>
 
@@ -2584,7 +2589,7 @@
       } else {
         grid.classList.remove('large-view');
         weekdays.classList.remove('large-view');
-        btn.innerHTML = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:3px;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>カレンダーを大きくする';
+        btn.innerHTML = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:3px;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>カレンダーを大きくする';
         btn.classList.remove('active');
       }
     }
@@ -4996,6 +5001,9 @@
       });
     }
 
+    document.querySelectorAll('.btn-chip-mode').forEach(byte => {
+      // 既存のイベントリスナーに準ずる
+    });
     document.querySelectorAll('.btn-chip-mode').forEach(btn => {
       btn.addEventListener('click', (e) => {
         document.querySelectorAll('.btn-chip-mode').forEach(b => b.classList.remove('active'));
