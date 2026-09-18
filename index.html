@@ -1,8 +1,8 @@
-<!-- Weight & Body Tracker - Version 1.3.7 -->
+<!-- Weight & Body Tracker - Version 1.3.6 2221行目-->
 <!-- [更新履歴] Version 1.3.3: 記録画面のカードタイトル（「今日/昨日/明日」付き）や日付表示の最適化、タイトルバーの軽量化 -->
-<!-- [更新履歴] Version 1.3.4: 2188行 目標体重設定の位と注釈文言を変更 -->
-<!-- [更新履歴] Version 1.3.5: 目標設定時の注釈文言を廃止、AI一括入力の画面拡大防止・ペーストボタン追加 -->
-<!-- [更新履歴] Version 1.3.7: 不安定な目標体重の「横線」を廃止し、「進捗バッジ」に変更 -->
+<!-- [更新履歴] Version 1.3.4: 目標設定時の注釈文言を廃止、AI一括入力の画面拡大防止・ペーストボタン追加 -->
+<!-- [更新履歴] Version 1.3.5: 不安定な目標体重の「横線」を廃止し、「進捗バッジ」に変更 -->
+<!-- [更新履歴] Version 1.3.6: AI一括入力画面のレイアウトを改善（見出しとボタンを上下配置にし、ボタン順序を変更） -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -2097,14 +2097,12 @@
           <ul class="history-list-modal" id="modalHistoryList"></ul>
         </div>
 
-        <!-- 4. AI一括インポート -->
+       <!-- 4. AI一括インポート -->
         <div id="modalViewAi" style="display: none;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-            <div style="font-size:0.8rem; font-weight:600; color:var(--text-main);">AIの回答をここに貼り付け</div>
-            <div style="display: flex; gap: 4px;">
-              <button type="button" class="btn-chip" onclick="pasteAiJsonFromClipboard()" style="font-size:0.72rem; padding:3px 8px; background:var(--accent-light); border-color:var(--accent); color:var(--accent); font-weight:600;">📋 ペースト</button>
-              <button type="button" class="btn-chip" onclick="copyAiPrompt()" style="font-size:0.72rem; padding:3px 8px; background:var(--accent-light); border-color:var(--accent); color:var(--accent); font-weight:600;">📋 プロンプトをコピー</button>
-            </div>
+          <div style="font-size:0.8rem; font-weight:600; color:var(--text-main); margin-bottom: 6px;">AIの回答をここに貼り付け</div>
+          <div style="display: flex; gap: 4px; margin-bottom: 8px;">
+            <button type="button" class="btn-chip" onclick="copyAiPrompt()" style="font-size:0.72rem; padding:4px 10px; background:var(--accent-light); border-color:var(--accent); color:var(--accent); font-weight:600; flex:1;">📋 プロンプトをコピー</button>
+            <button type="button" class="btn-chip" onclick="pasteAiJsonFromClipboard()" style="font-size:0.72rem; padding:4px 10px; background:var(--accent-light); border-color:var(--accent); color:var(--accent); font-weight:600; flex:1;">📋 ペースト</button>
           </div>
           
           <div style="background: var(--card-sub); border: 1px solid var(--border); border-radius: 6px; padding: 8px; font-size: 0.72rem; font-family: monospace; color: var(--text-main); margin-bottom: 8px; user-select: all; word-break: break-all;">
@@ -2217,7 +2215,7 @@
           </div>
 
           <div style="text-align: center; margin-top: 24px; font-size: 0.75rem; color: var(--text-sub);">
-            Version 1.3.7
+            Version 1.3.6
           </div>
         </div>
 
