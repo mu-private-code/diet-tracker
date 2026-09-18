@@ -1,8 +1,8 @@
-<!-- Weight & Body Tracker - Version 1.3.6 -->
+<!-- Weight & Body Tracker - Version 1.3.7 -->
 <!-- [更新履歴] Version 1.3.3: 記録画面のカードタイトル（「今日/昨日/明日」付き）や日付表示の最適化、タイトルバーの軽量化 -->
 <!-- [更新履歴] Version 1.3.4: 2188行 目標体重設定の位と注釈文言を変更 -->
-<!-- [更新履歴] Version 1.3.5: 目標設定時の注釈文言を廃止 -->
-<!-- [更新履歴] Version 1.3.6: AI一括入力時の画面勝手拡大を修正（フォントサイズ16px化）、ペーストボタンを追加 -->
+<!-- [更新履歴] Version 1.3.5: 目標設定時の注釈文言を廃止、AI一括入力の画面拡大防止・ペーストボタン追加 -->
+<!-- [更新履歴] Version 1.3.7: 不安定な目標体重の「横線」を廃止し、「進捗バッジ」に変更 -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -281,7 +281,7 @@
       padding: 10px 12px;
       border: 1px solid var(--border);
       border-radius: 8px;
-      font-size: 16px; /* 16pxにすることでスマホでの自動ズームを防止 */
+      font-size: 16px;
       color: var(--text-main);
       background: #fff;
       outline: none;
@@ -1257,6 +1257,26 @@
       border: 1px solid var(--border);
     }
 
+    /* 目標進捗バッジカード */
+    .target-progress-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--accent-light);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      margin-bottom: 12px;
+      font-size: 0.84rem;
+      color: var(--text-main);
+    }
+
+    .target-card-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
     .history-list {
       list-style: none;
       display: flex;
@@ -1880,6 +1900,20 @@
           </div>
         </div>
 
+        <!-- 目標進捗バッジ（ターゲットSVGイラスト付き） -->
+        <div class="target-progress-card" id="targetProgressCard">
+          <div class="target-card-item">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+            <span>目標: <strong id="badgeTargetW">--</strong> kg</span>
+          </div>
+          <div class="target-card-item">
+            <span>現在: <strong id="badgeCurrentW">--</strong> kg</span>
+          </div>
+          <div class="target-card-item">
+            <span>(<span id="badgeDiffW" style="font-weight:700;">--</span>)</span>
+          </div>
+        </div>
+
         <div class="chart-stage-container">
           <div class="chart-axis-left" id="fixedYWeightAxis"></div>
           <div class="chart-scroll-container" id="chartScrollContainer">
@@ -2183,7 +2217,7 @@
           </div>
 
           <div style="text-align: center; margin-top: 24px; font-size: 0.75rem; color: var(--text-sub);">
-            Version 1.3.6
+            Version 1.3.7
           </div>
         </div>
 
@@ -4599,33 +4633,6 @@
       }
     }
 
-    // 目標体重の横線を描画するためのカスタムChart.jsプラグイン
-    const targetLinePlugin = {
-      id: 'targetLinePlugin',
-      beforeDraw: (chart) => {
-        const targetW = userConfig.targetWeight;
-        if (!targetW) return;
-        
-        const yScale = chart.scales.yWeight;
-        if (!yScale) return;
-
-        const ctx = chart.ctx;
-        const yPos = yScale.getPixelForValue(targetW);
-
-        if (!isNaN(yPos) && yPos >= chart.chartArea.top && yPos <= chart.chartArea.bottom) {
-          ctx.save();
-          ctx.beginPath();
-          ctx.moveTo(chart.chartArea.left, yPos);
-          ctx.lineTo(chart.chartArea.right, yPos);
-          ctx.lineWidth = 1.5;
-          ctx.strokeStyle = '#9c826b'; // モカブラウン
-          ctx.setLineDash([4, 4]); // 点線
-          ctx.stroke();
-          ctx.restore();
-        }
-      }
-    };
-
     function initChart() {
       const ctx = document.getElementById('weightChart').getContext('2d');
       chartInstance = new Chart(ctx, {
@@ -4711,8 +4718,7 @@
               grid: { display: false }
             }
           }
-        },
-        plugins: [targetLinePlugin]
+        }
       });
       updateChart();
     }
@@ -4748,6 +4754,30 @@
         const found = records.find(r => r.date === d);
         return (found && found.fat !== null && found.fat !== undefined) ? found.fat : null;
       });
+
+      // 目標進捗バッジの数値を更新
+      document.getElementById('badgeTargetW').textContent = userConfig.targetWeight !== undefined ? userConfig.targetWeight : '--';
+      const validWeights = weights.filter(w => typeof w === 'number' && !isNaN(w));
+      const currentW = validWeights.length > 0 ? validWeights[validWeights.length - 1] : null;
+      
+      if (currentW !== null && userConfig.targetWeight !== undefined) {
+        document.getElementById('badgeCurrentW').textContent = currentW.toFixed(1);
+        const diff = Math.round((currentW - userConfig.targetWeight) * 10) / 10;
+        const diffEl = document.getElementById('badgeDiffW');
+        if (diff > 0) {
+          diffEl.textContent = `あと -${diff} kg`;
+          diffEl.style.color = 'var(--danger)';
+        } else if (diff < 0) {
+          diffEl.textContent = `目標クリア (${diff} kg)`;
+          diffEl.style.color = 'var(--meal-lunch)';
+        } else {
+          diffEl.textContent = `目標達成！`;
+          diffEl.style.color = 'var(--meal-lunch)';
+        }
+      } else {
+        document.getElementById('badgeCurrentW').textContent = currentW !== null ? currentW.toFixed(1) : '--';
+        document.getElementById('badgeDiffW').textContent = '--';
+      }
 
       const container = document.getElementById('chartScrollContainer');
       const containerWidth = container.clientWidth || 400;
