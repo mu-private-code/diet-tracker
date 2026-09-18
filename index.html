@@ -1,7 +1,8 @@
-<!-- Weight & Body Tracker - Version 1.3.5 -->
+<!-- Weight & Body Tracker - Version 1.3.6 -->
 <!-- [更新履歴] Version 1.3.3: 記録画面のカードタイトル（「今日/昨日/明日」付き）や日付表示の最適化、タイトルバーの軽量化 -->
 <!-- [更新履歴] Version 1.3.4: 2188行 目標体重設定の位と注釈文言を変更 -->
-<!-- [更新履歴] Version 1.3.5: 目標設定時の注釈文言を廃止、バージョン表記を1.3.5に統一 -->
+<!-- [更新履歴] Version 1.3.5: 目標設定時の注釈文言を廃止 -->
+<!-- [更新履歴] Version 1.3.6: AI一括入力時の画面勝手拡大を修正（フォントサイズ16px化）、ペーストボタンを追加 -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -280,7 +281,7 @@
       padding: 10px 12px;
       border: 1px solid var(--border);
       border-radius: 8px;
-      font-size: 16px;
+      font-size: 16px; /* 16pxにすることでスマホでの自動ズームを防止 */
       color: var(--text-main);
       background: #fff;
       outline: none;
@@ -2066,7 +2067,10 @@
         <div id="modalViewAi" style="display: none;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
             <div style="font-size:0.8rem; font-weight:600; color:var(--text-main);">AIの回答をここに貼り付け</div>
-            <button type="button" class="btn-chip" onclick="copyAiPrompt()" style="font-size:0.72rem; padding:3px 8px; background:var(--accent-light); border-color:var(--accent); color:var(--accent); font-weight:600;">📋 AI用プロンプトをコピー</button>
+            <div style="display: flex; gap: 4px;">
+              <button type="button" class="btn-chip" onclick="pasteAiJsonFromClipboard()" style="font-size:0.72rem; padding:3px 8px; background:var(--accent-light); border-color:var(--accent); color:var(--accent); font-weight:600;">📋 ペースト</button>
+              <button type="button" class="btn-chip" onclick="copyAiPrompt()" style="font-size:0.72rem; padding:3px 8px; background:var(--accent-light); border-color:var(--accent); color:var(--accent); font-weight:600;">📋 プロンプトをコピー</button>
+            </div>
           </div>
           
           <div style="background: var(--card-sub); border: 1px solid var(--border); border-radius: 6px; padding: 8px; font-size: 0.72rem; font-family: monospace; color: var(--text-main); margin-bottom: 8px; user-select: all; word-break: break-all;">
@@ -2074,7 +2078,7 @@
             {"content": "白米 150g", "kcal": 234, "p": 3.8, "f": 0.5, "c": 53.4}
           </div>
 
-          <textarea id="aiJsonInput" rows="5" placeholder="ここにAIの回答を貼り付け..." style="font-size:0.82rem; font-family:monospace; margin-bottom:10px;"></textarea>
+          <textarea id="aiJsonInput" rows="5" placeholder="ここにAIの回答を貼り付け..." style="font-size:16px; font-family:monospace; margin-bottom:10px;"></textarea>
           <button type="button" class="btn-primary" onclick="importAiMealJsonToSlot()">この内容を<span id="aiTargetSlotName">朝食</span>に追加する</button>
         </div>
       </div>
@@ -2179,7 +2183,7 @@
           </div>
 
           <div style="text-align: center; margin-top: 24px; font-size: 0.75rem; color: var(--text-sub);">
-            Version 1.3.5
+            Version 1.3.6
           </div>
         </div>
 
@@ -3552,6 +3556,19 @@
       });
     }
 
+    function pasteAiJsonFromClipboard() {
+      navigator.clipboard.readText().then(text => {
+        if (!text) {
+          alert('クリップボードが空です');
+          return;
+        }
+        document.getElementById('aiJsonInput').value = text;
+        alert('クリップボードから貼り付けました！');
+      }).catch(err => {
+        alert('クリップボードの読み取りに失敗しました。テキストエリアを長押しして手動で貼り付けてください。');
+      });
+    }
+
     function importAiMealJsonToSlot() {
       const text = document.getElementById('aiJsonInput').value.trim();
       if (!text) {
@@ -4752,33 +4769,43 @@
       chartInstance.data.datasets[0].data = weights;
       chartInstance.data.datasets[1].data = fats;
 
-      const allValidWeights = weights.filter(w => typeof w === 'number' && !isNaN(w));
+      const visibleWeights = weights.slice(-currentSpanDays).filter(w => typeof w === 'number' && !isNaN(w));
+      const visibleFats = fats.slice(-currentSpanDays).filter(f => typeof f === 'number' && !isNaN(f));
 
-      let baseCenter = 46.0;
+      let avgWeight = 46.0;
+      if (visibleWeights.length > 0) {
+        const sum = visibleWeights.reduce((a, b) => a + b, 0);
+        avgWeight = sum / visibleWeights.length;
+      } else if (weights.length > 0) {
+        const validAllW = weights.filter(w => typeof w === 'number' && !isNaN(w));
+        if (validAllW.length > 0) {
+          avgWeight = validAllW[validAllW.length - 1];
+        }
+      }
+
+      let targetMinW = Math.min(avgWeight - 5.0, 42.0);
       if (userConfig.targetWeight) {
-        baseCenter = userConfig.targetWeight;
-      } else if (allValidWeights.length > 0) {
-        baseCenter = allValidWeights[allValidWeights.length - 1];
+        targetMinW = Math.min(targetMinW, userConfig.targetWeight - 1.0);
       }
+      if (visibleWeights.length > 0) {
+        const minVal = Math.min(...visibleWeights);
+        targetMinW = Math.min(targetMinW, minVal - 0.5);
+      }
+      let wMin = Math.floor(targetMinW * 2) / 2;
 
-      let wMin = Math.floor((baseCenter - 3.0) * 2) / 2;
-      let wMax = wMin + 6.0;
-
+      let maxValW = visibleWeights.length > 0 ? Math.max(...visibleWeights) : avgWeight;
       if (userConfig.targetWeight) {
-        wMin = Math.min(wMin, Math.floor((userConfig.targetWeight - 1.0) * 2) / 2);
-        wMax = Math.max(wMax, Math.ceil((userConfig.targetWeight + 1.0) * 2) / 2);
+        maxValW = Math.max(maxValW, userConfig.targetWeight + 1.0);
       }
-      if (allValidWeights.length > 0) {
-        wMin = Math.min(wMin, Math.floor((Math.min(...allValidWeights) - 0.5) * 2) / 2);
-        wMax = Math.max(wMax, Math.ceil((Math.max(...allValidWeights) + 0.5) * 2) / 2);
-      }
+      let wMax = Math.ceil((Math.max(maxValW, 48.0) + 0.5) * 2) / 2;
+      if (wMin === wMax) wMax += 1.0;
 
       let wDiff = wMax - wMin;
       let steps = Math.round(wDiff / 0.5);
-      if (steps < 6) steps = 12;
+      if (steps < 4) steps = 12;
+
       wMax = wMin + (steps * 0.5);
 
-      const visibleFats = fats.slice(-currentSpanDays).filter(f => typeof f === 'number' && !isNaN(f));
       let avgFat = 28.0;
       if (visibleFats.length > 0) {
         avgFat = visibleFats.reduce((a, b) => a + b, 0) / visibleFats.length;
