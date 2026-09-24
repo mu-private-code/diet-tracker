@@ -1,10 +1,11 @@
-<!-- Weight & Body Tracker - Version 1.3.8 2278行目-->
+<!-- Weight & Body Tracker - Version 1.3.9 2278行目-->
 <!-- [更新履歴] Version 1.3.3: 記録画面のカードタイトル（「今日/昨日/明日」付き）や日付表示の最適化、タイトルバーの軽量化 -->
 <!-- [更新履歴] Version 1.3.4: 目標設定時の注釈文言を廃止、AI一括入力の画面拡大防止・ペーストボタン追加 -->
 <!-- [更新履歴] Version 1.3.5: 不安定な目標体重の「横線」を廃止し、「進捗バッジ」に変更 -->
 <!-- [更新履歴] Version 1.3.6: AI一括入力画面のレイアウトを改善（見出しとボタンを上下配置にし、ボタン順序を変更） -->
 <!-- [更新履歴] Version 1.3.7: カレンダー拡大時の縦幅をさらに伸ばし、アイコンとラベルのはみ出しを解消 -->
-<!-- [更新履歴] Version 1.3.8: 体重の整数入力時（45など）に小数点第一位まで（45.0）表示されるよう修正 -->
+<!-- [更新履歴] Version 1.3.8: 体重の整数入力時に小数点第一位まで表示されるよう修正 -->
+<!-- [更新履歴] Version 1.3.9: お通じ未登録時に食事評価だけ登録した際、カレンダーのラベルが誤表示されるバグを修正 -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -1097,10 +1098,11 @@
       transition: width 0.2s, height 0.2s;
     }
 
-    .cell-tag-subtext::after {
+    /* 正しいラベル付けの修正 */
+    .cell-tag-item.bowel-tag .cell-tag-subtext::after {
       content: "お通じ";
     }
-    .cell-tag-item:nth-child(2) .cell-tag-subtext::after {
+    .cell-tag-item.meal-tag .cell-tag-subtext::after {
       content: "食事";
     }
 
@@ -1122,17 +1124,17 @@
       border-radius: 50%;
     }
 
-    /* カレンダー拡大モード用スタイル（日付を控えめにして縦を更に伸ばし、はみ出しを解消） */
+    /* カレンダー拡大モード用スタイル */
     .calendar-grid.large-view .calendar-cell {
-      aspect-ratio: 1 / 1.75; /* セルをさらに縦長に伸ばす */
+      aspect-ratio: 1 / 1.75;
       padding: 6px 2px;
       gap: 4px;
     }
     .calendar-grid.large-view .cell-day {
-      font-size: 0.78rem; /* 日付の拡大を控えめにする */
+      font-size: 0.78rem;
     }
     .calendar-grid.large-view .cell-weight {
-      font-size: 0.8rem; /* 体重はしっかり見せる */
+      font-size: 0.8rem;
     }
     .calendar-weekdays.large-view {
       font-size: 0.85rem;
@@ -1150,10 +1152,10 @@
       transform: scale(0.95);
     }
     /* 拡大時のみ「通」「食」に切り替え */
-    .calendar-grid.large-view .cell-tag-item:nth-child(1) .cell-tag-subtext::after {
+    .calendar-grid.large-view .cell-tag-item.bowel-tag .cell-tag-subtext::after {
       content: "通";
     }
-    .calendar-grid.large-view .cell-tag-item:nth-child(2) .cell-tag-subtext::after {
+    .calendar-grid.large-view .cell-tag-item.meal-tag .cell-tag-subtext::after {
       content: "食";
     }
 
@@ -1308,7 +1310,6 @@
       border: 1px solid var(--border);
     }
 
-    /* 目標進捗バッジカード */
     .target-progress-card {
       display: flex;
       justify-content: space-between;
@@ -1881,7 +1882,6 @@
           <button class="calendar-nav-btn" id="nextMonthBtn">翌月 &gt;</button>
         </div>
 
-        <!-- 文字サイズ切り替えボタン -->
         <div style="display: flex; justify-content: flex-end; margin-bottom: 8px;">
           <button type="button" class="btn-chip" id="btnToggleCalendarSize" onclick="toggleCalendarSize()" style="font-size: 0.78rem; padding: 4px 10px;">
             <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:3px;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>カレンダーを大きくする
@@ -2068,7 +2068,6 @@
               </div>
             </div>
 
-            <!-- パーセンテージプリセットボタン -->
             <div style="display:flex; gap:4px; margin-bottom:8px;" id="percentPresetButtons">
               <button type="button" class="btn-chip" onclick="setPortionPercent(50)" style="flex:1; padding:3px 0; font-size:0.72rem;">50%</button>
               <button type="button" class="btn-chip" onclick="setPortionPercent(70)" style="flex:1; padding:3px 0; font-size:0.72rem;">70%</button>
@@ -2282,7 +2281,7 @@
           </div>
 
           <div style="text-align: center; margin-top: 24px; font-size: 0.75rem; color: var(--text-sub);">
-            Version 1.3.8
+            Version 1.3.9
           </div>
         </div>
 
@@ -2595,7 +2594,6 @@
       });
     });
 
-    // カレンダー拡大・標準切り替え機能
     let isCalendarLarge = false;
     function toggleCalendarSize() {
       isCalendarLarge = !isCalendarLarge;
@@ -4543,7 +4541,6 @@
         if (rec && rec.weight !== null && rec.weight !== undefined) {
           const weightSpan = document.createElement('span');
           weightSpan.className = 'cell-weight';
-          // 修正：整数であっても常に小数点第一位まで表示するように固定
           weightSpan.textContent = Number(rec.weight).toFixed(1);
           cell.appendChild(weightSpan);
         }
@@ -4553,17 +4550,19 @@
 
         let hasData = false;
 
+        // 修正：お通じタグに 'bowel-tag' クラスを付与
         if (rec && faceIcons[rec.bowel]) {
           const bowelDiv = document.createElement('div');
-          bowelDiv.className = 'cell-tag-item';
+          bowelDiv.className = 'cell-tag-item bowel-tag';
           bowelDiv.innerHTML = `${faceIcons[rec.bowel]}<span class="cell-tag-subtext"></span>`;
           tagsRow.appendChild(bowelDiv);
           hasData = true;
         }
 
+        // 修正：食事評価タグに 'meal-tag' クラスを付与
         if (mealScore && mealScoreIcons[mealScore]) {
           const mealDiv = document.createElement('div');
-          mealDiv.className = 'cell-tag-item';
+          mealDiv.className = 'cell-tag-item meal-tag';
           mealDiv.innerHTML = `${mealScoreIcons[mealScore]}<span class="cell-tag-subtext"></span>`;
           tagsRow.appendChild(mealDiv);
           hasData = true;
